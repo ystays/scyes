@@ -139,7 +139,6 @@ async def on_ready():
 
 @bot.tree.command(name="test", description="Basic test command")
 async def test_command(interaction: discord.Interaction):
-    """Test command."""
     await interaction.response.send_message(
         f"hello world {get_random_emoji()}"
     )
@@ -152,7 +151,6 @@ async def test_command(interaction: discord.Interaction):
     for choice in get_rps_choices()
 ])
 async def challenge_command(interaction: discord.Interaction, object: str):
-    """Challenge command."""
     # Create challenge message with accept button
     view = ChallengeView(
         challenger_id=interaction.user.id,

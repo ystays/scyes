@@ -2,7 +2,7 @@ from utils import capitalize
 import random
 
 
-RPS_CHOICES = {
+RPS_CHOICES: dict = {
     "rock": {
         "description": "sedimentary, igneous, or perhaps even metamorphic",
         "virus": "outwaits",

@@ -8,6 +8,8 @@ import uvicorn
 
 from game import get_result, get_shuffled_options
 from utils import get_random_emoji
+from discord import InteractionType, InteractionResponseType, ComponentType, MessageFlags
+from interactions import handle_challenge_interaction_command, handle_accept_button, handle_interaction_component
 
 # Load environment variables
 load_dotenv()
@@ -36,7 +38,7 @@ def verify_discord_request(raw_body: bytes, signature: str, timestamp: str) -> b
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {"message": "Hello from FastAPI!", "status": "running"}
+    return {"message": "Hello!", "status": "running"}
 
 
 @app.get("/api/health")
@@ -49,7 +51,7 @@ async def health_check():
 async def get_info():
     """Get server info."""
     return {
-        "name": "My FastAPI Server",
+        "name": "scyes",
         "version": "1.0.0",
         "description": "A simple FastAPI server exposed with ngrok"
     }
@@ -79,113 +81,50 @@ async def interactions(request: Request):
     data = body.get("data", {})
 
     # Handle PING (verification request)
-    if interaction_type == 1:
-        return {"type": 1}
+    if interaction_type == InteractionType.ping:
+        return {"type": InteractionResponseType.pong}
 
     # Handle APPLICATION_COMMAND
-    if interaction_type == 2:
+    if interaction_type == InteractionType.application_command:
         command_name = data.get("name")
 
-        if command_name == "test":
-            return {
-                "type": 4,
-                "data": {
-                    "content": f"hello world {get_random_emoji()}"
+        match command_name:
+            case "test":
+                return {
+                    "type": InteractionResponseType.channel_message,
+                    "data": {
+                        "content": f"hello world {get_random_emoji()}"
+                    }
                 }
-            }
 
-        if command_name == "challenge":
-            user_id = body.get("member", {}).get("user", {}).get("id") or body.get("user", {}).get("id")
-            object_name = data.get("options", [{}])[0].get("value", "").lower()
-
-            # Store active game
-            active_games[interaction_id] = {
-                "challenger_id": user_id,
-                "challenger_choice": object_name,
-            }
-
-            return {
-                "type": 4,
-                "data": {
-                    "content": f"Rock paper scissors challenge from <@{user_id}>",
-                    "components": [
-                        {
-                            "type": 1,
-                            "components": [
-                                {
-                                    "type": 2,
-                                    "custom_id": f"accept_button_{interaction_id}",
-                                    "label": "Accept",
-                                    "style": 1,
-                                }
-                            ]
-                        }
-                    ]
+            case "challenge":
+                user_id = body.get("member", {}).get("user", {}).get("id") or body.get("user", {}).get("id")
+                object_name = data.get("options", [{}])[0].get("value", "").lower()
+                # Store active game
+                active_games[interaction_id] = {
+                    "challenger_id": user_id,
+                    "challenger_choice": object_name,
                 }
-            }
 
-        return {"type": 4, "data": {"content": f"Unknown command: {command_name}"}}
+                return handle_challenge_interaction_command(user_id, object_name)
+
+            case _:
+                return {"type": InteractionResponseType.channel_message, "data": {"content": f"Unknown command: {command_name}"}}
 
     # Handle MESSAGE_COMPONENT (buttons, select menus)
-    if interaction_type == 3:
+    if interaction_type == InteractionType.component:
         custom_id = data.get("custom_id", "")
+        resp = handle_interaction_component(custom_id)
+        if resp:
+            return resp
 
-        if custom_id.startswith("accept_button_"):
-            game_id = custom_id.replace("accept_button_", "")
-
-            return {
-                "type": 4,
-                "data": {
-                    "flags": 64,  # Ephemeral
-                    "content": "What is your object of choice?",
-                    "components": [
-                        {
-                            "type": 1,
-                            "components": [
-                                {
-                                    "type": 3,
-                                    "custom_id": f"select_choice_{game_id}",
-                                    "placeholder": "Choose your object...",
-                                    "options": get_shuffled_options()
-                                }
-                            ]
-                        }
-                    ]
-                }
-            }
-
-        if custom_id.startswith("select_choice_"):
-            game_id = custom_id.replace("select_choice_", "")
-
-            if game_id not in active_games:
-                return {"type": 4, "data": {"content": "This game is no longer active."}}
-
-            game = active_games[game_id]
-            user_id = body.get("member", {}).get("user", {}).get("id") or body.get("user", {}).get("id")
-            opponent_choice = data.get("values", [""])[0]
-
-            challenger = {
-                "id": game["challenger_id"],
-                "objectName": game["challenger_choice"],
-            }
-            opponent = {
-                "id": user_id,
-                "objectName": opponent_choice,
-            }
-
-            result_text = get_result(challenger, opponent)
-            del active_games[game_id]
-
-            return {
-                "type": 4,
-                "data": {
-                    "content": f"{result_text}\n\nNice choice {get_random_emoji()}"
-                }
-            }
-
-    return {"type": 4, "data": {"content": "Unknown interaction type"}}
+    return {
+        "type": InteractionResponseType.channel_message, 
+        "data": {
+            "content": "Unknown interaction type"
+        }
+    }
 
 
 if __name__ == "__main__":
-    # Run the server on localhost:8000
     uvicorn.run(app, host="0.0.0.0", port=8000)
