@@ -30,13 +30,14 @@ class ChallengeView(discord.ui.View):
         self.message_id = message_id
 
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.primary)
-    async def accept_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def accept_button(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         """Handle accept button click."""
         # Prevent challenger from accepting their own challenge
         if interaction.user.id == self.challenger_id:
             await interaction.response.send_message(
-                "You can't accept your own challenge!",
-                ephemeral=True
+                "You can't accept your own challenge!", ephemeral=True
             )
             return
 
@@ -50,9 +51,7 @@ class ChallengeView(discord.ui.View):
         # Show choice select menu
         view = ChoiceView(self.message_id)
         await interaction.response.send_message(
-            "What is your object of choice?",
-            view=view,
-            ephemeral=True
+            "What is your object of choice?", view=view, ephemeral=True
         )
 
 
@@ -70,11 +69,11 @@ class ChoiceView(discord.ui.View):
                 discord.SelectOption(
                     label=opt["label"],
                     value=opt["value"],
-                    description=opt["description"]
+                    description=opt["description"],
                 )
                 for opt in get_shuffled_options()
             ],
-            custom_id=f"choice_select_{message_id}"
+            custom_id=f"choice_select_{message_id}",
         )
         select.callback = self.on_select
         self.add_item(select)
@@ -83,8 +82,7 @@ class ChoiceView(discord.ui.View):
         """Handle opponent's choice selection."""
         if self.message_id not in active_games:
             await interaction.response.send_message(
-                "This game is no longer active.",
-                ephemeral=True
+                "This game is no longer active.", ephemeral=True
             )
             return
 
@@ -137,28 +135,29 @@ async def on_ready():
 
 @bot.tree.command(name="test", description="Basic test command")
 async def test_command(interaction: discord.Interaction):
-    await interaction.response.send_message(
-        f"hello world {get_random_emoji()}"
-    )
+    await interaction.response.send_message(f"hello world {get_random_emoji()}")
 
 
-@bot.tree.command(name="challenge", description="Challenge to a match of rock paper scissors")
+@bot.tree.command(
+    name="challenge", description="Challenge to a match of rock paper scissors"
+)
 @app_commands.describe(object="Pick your object")
-@app_commands.choices(object=[
-    app_commands.Choice(name=choice.capitalize(), value=choice)
-    for choice in get_rps_choices()
-])
+@app_commands.choices(
+    object=[
+        app_commands.Choice(name=choice.capitalize(), value=choice)
+        for choice in get_rps_choices()
+    ]
+)
 async def challenge_command(interaction: discord.Interaction, object: str):
     # Create challenge message with accept button
     view = ChallengeView(
         challenger_id=interaction.user.id,
         challenger_choice=object.lower(),
-        message_id=interaction.id
+        message_id=interaction.id,
     )
 
     await interaction.response.send_message(
-        f"Rock paper scissors challenge from <@{interaction.user.id}>",
-        view=view
+        f"Rock paper scissors challenge from <@{interaction.user.id}>", view=view
     )
 
 

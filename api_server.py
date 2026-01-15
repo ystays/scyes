@@ -1,4 +1,5 @@
 """FastAPI server with ngrok integration and Discord interactions."""
+
 import os
 import nacl.signing
 import nacl.exceptions
@@ -8,7 +9,10 @@ import uvicorn
 
 from utils import get_random_emoji
 from discord import InteractionType, InteractionResponseType
-from interactions import handle_challenge_interaction_command, handle_interaction_component
+from interactions import (
+    handle_challenge_interaction_command,
+    handle_interaction_component,
+)
 
 import logging
 
@@ -27,7 +31,9 @@ def verify_discord_request(raw_body: bytes, signature: str, timestamp: str) -> b
     if not verify_key:
         return False
     try:
-        verify_key.verify(f"{timestamp}{raw_body.decode()}".encode(), bytes.fromhex(signature))
+        verify_key.verify(
+            f"{timestamp}{raw_body.decode()}".encode(), bytes.fromhex(signature)
+        )
         return True
     except nacl.exceptions.BadSignatureError:
         return False
@@ -51,7 +57,7 @@ async def get_info():
     return {
         "name": "scyes",
         "version": "1.0.0",
-        "description": "A simple FastAPI server exposed with ngrok"
+        "description": "A simple FastAPI server exposed with ngrok",
     }
 
 
@@ -91,20 +97,25 @@ async def interactions(request: Request):
                 logging.info("[interactions] Test command")
                 return {
                     "type": InteractionResponseType.channel_message.value,
-                    "data": {
-                        "content": f"hello world {get_random_emoji()}"
-                    }
+                    "data": {"content": f"hello world {get_random_emoji()}"},
                 }
 
             case "challenge":
-                user_id: str = body.get("member", {}).get("user", {}).get("id") or body.get("user", {}).get("id")
+                user_id: str = body.get("member", {}).get("user", {}).get(
+                    "id"
+                ) or body.get("user", {}).get("id")
                 object_name: str = data.get("options", [{}])[0].get("value", "").lower()
 
-                return handle_challenge_interaction_command(user_id, object_name, interaction_id)
+                return handle_challenge_interaction_command(
+                    user_id, object_name, interaction_id
+                )
 
             case _:
                 logging.warning("[interactions] Invalid command")
-                return {"type": InteractionResponseType.channel_message.value, "data": {"content": f"Unknown command: {command_name}"}}
+                return {
+                    "type": InteractionResponseType.channel_message.value,
+                    "data": {"content": f"Unknown command: {command_name}"},
+                }
 
     # Handle MESSAGE_COMPONENT (buttons, select menus)
     if interaction_type == InteractionType.component:
@@ -115,10 +126,8 @@ async def interactions(request: Request):
             return resp
 
     return {
-        "type": InteractionResponseType.channel_message.value, 
-        "data": {
-            "content": "Unknown interaction type"
-        }
+        "type": InteractionResponseType.channel_message.value,
+        "data": {"content": "Unknown interaction type"},
     }
 
 

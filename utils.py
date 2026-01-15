@@ -2,7 +2,22 @@ import random
 
 
 def get_random_emoji() -> str:
-    emoji_list = ["😭", "😄", "😌", "🤓", "😎", "😤", "🤖", "😶‍🌫️", "🌏", "📸", "💿", "👋", "🌊", "✨"]
+    emoji_list = [
+        "😭",
+        "😄",
+        "😌",
+        "🤓",
+        "😎",
+        "😤",
+        "🤖",
+        "😶‍🌫️",
+        "🌏",
+        "📸",
+        "💿",
+        "👋",
+        "🌊",
+        "✨",
+    ]
     return random.choice(emoji_list)
 
 

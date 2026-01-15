@@ -5,7 +5,10 @@ from utils import get_random_emoji
 # Store for in-progress games (message_id -> game_state)
 active_games = {}
 
-def handle_challenge_interaction_command(user_id: str, object_name: str, interaction_id: str) -> dict:
+
+def handle_challenge_interaction_command(
+    user_id: str, object_name: str, interaction_id: str
+) -> dict:
     # Store active game
     active_games[interaction_id] = {
         "challenger_id": user_id,
@@ -18,41 +21,43 @@ def handle_challenge_interaction_command(user_id: str, object_name: str, interac
             "content": f"Rock paper scissors challenge from <@{user_id}>",
             "components": [
                 {
-                    "type": ComponentType.action_row,
+                    "type": ComponentType.action_row.value,
                     "components": [
                         {
-                            "type": ComponentType.button,
+                            "type": ComponentType.button.value,
                             "custom_id": f"accept_button_{interaction_id}",
                             "label": "Accept",
                             "style": 1,
                         }
-                    ]
+                    ],
                 }
-            ]
-        }
+            ],
+        },
     }
+
 
 def handle_accept_button(game_id) -> dict:
     return {
-        "type": InteractionResponseType.channel_message,
+        "type": InteractionResponseType.channel_message.value,
         "data": {
-            "flags": MessageFlags.Ephemeral,  # Ephemeral
+            "flags": MessageFlags.ephemeral,  # Ephemeral
             "content": "What is your object of choice?",
             "components": [
                 {
-                    "type": ComponentType.action_row,
+                    "type": ComponentType.action_row.value,
                     "components": [
                         {
-                            "type": ComponentType.select,
+                            "type": ComponentType.select.value,
                             "custom_id": f"select_choice_{game_id}",
                             "placeholder": "Choose your object...",
-                            "options": get_shuffled_options()
+                            "options": get_shuffled_options(),
                         }
-                    ]
+                    ],
                 }
-            ]
-        }
-    }   
+            ],
+        },
+    }
+
 
 def handle_interaction_component(custom_id: str, body: dict, data: dict) -> dict | None:
     if custom_id.startswith("accept_button_"):
@@ -63,10 +68,15 @@ def handle_interaction_component(custom_id: str, body: dict, data: dict) -> dict
         game_id = custom_id.replace("select_choice_", "")
 
         if game_id not in active_games:
-            return {"type": InteractionResponseType.channel_message, "data": {"content": "This game is no longer active."}}
+            return {
+                "type": InteractionResponseType.channel_message.value,
+                "data": {"content": "This game is no longer active."},
+            }
 
         game = active_games[game_id]
-        user_id = body.get("member", {}).get("user", {}).get("id") or body.get("user", {}).get("id")
+        user_id = body.get("member", {}).get("user", {}).get("id") or body.get(
+            "user", {}
+        ).get("id")
         opponent_choice = data.get("values", [""])[0]
 
         challenger = {
@@ -82,10 +92,8 @@ def handle_interaction_component(custom_id: str, body: dict, data: dict) -> dict
         del active_games[game_id]
 
         return {
-            "type": InteractionResponseType.channel_message,
-            "data": {
-                "content": f"{result_text}\n\nNice choice {get_random_emoji()}"
-            }
+            "type": InteractionResponseType.channel_message.value,
+            "data": {"content": f"{result_text}\n\nNice choice {get_random_emoji()}"},
         }
-    
+
     return None

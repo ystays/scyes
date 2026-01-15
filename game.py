@@ -52,14 +52,18 @@ def get_result(p1, p2):
     """Calculate game result between two players."""
     game_result = None
 
-    if RPS_CHOICES[p1["objectName"]] and RPS_CHOICES[p1["objectName"]].get(p2["objectName"]):
+    if RPS_CHOICES[p1["objectName"]] and RPS_CHOICES[p1["objectName"]].get(
+        p2["objectName"]
+    ):
         # p1 wins
         game_result = {
             "win": p1,
             "lose": p2,
             "verb": RPS_CHOICES[p1["objectName"]][p2["objectName"]],
         }
-    elif RPS_CHOICES[p2["objectName"]] and RPS_CHOICES[p2["objectName"]].get(p1["objectName"]):
+    elif RPS_CHOICES[p2["objectName"]] and RPS_CHOICES[p2["objectName"]].get(
+        p1["objectName"]
+    ):
         # p2 wins
         game_result = {
             "win": p2,
@@ -96,11 +100,13 @@ def get_shuffled_options():
     options = []
 
     for choice in choices:
-        options.append({
-            "label": capitalize(choice),
-            "value": choice.lower(),
-            "description": RPS_CHOICES[choice]["description"],
-        })
+        options.append(
+            {
+                "label": capitalize(choice),
+                "value": choice.lower(),
+                "description": RPS_CHOICES[choice]["description"],
+            }
+        )
 
     random.shuffle(options)
     return options
