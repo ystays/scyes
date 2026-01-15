@@ -1,7 +1,19 @@
+from discord import InteractionResponseType, ComponentType, MessageFlags
+from game import get_result, get_shuffled_options
+from utils import get_random_emoji
 
-def handle_challenge_interaction_command(user_id: string, object_name: string) -> dict:
+# Store for in-progress games (message_id -> game_state)
+active_games = {}
+
+def handle_challenge_interaction_command(user_id: str, object_name: str, interaction_id: str) -> dict:
+    # Store active game
+    active_games[interaction_id] = {
+        "challenger_id": user_id,
+        "challenger_choice": object_name,
+    }
+
     return {
-        "type": InteractionResponseType.channel_message,
+        "type": InteractionResponseType.channel_message.value,
         "data": {
             "content": f"Rock paper scissors challenge from <@{user_id}>",
             "components": [
@@ -9,7 +21,7 @@ def handle_challenge_interaction_command(user_id: string, object_name: string) -
                     "type": ComponentType.action_row,
                     "components": [
                         {
-                            "type": ComponentType.Button,
+                            "type": ComponentType.button,
                             "custom_id": f"accept_button_{interaction_id}",
                             "label": "Accept",
                             "style": 1,
@@ -42,7 +54,7 @@ def handle_accept_button(game_id) -> dict:
         }
     }   
 
-def handle_interaction_component(custom_id: str) -> dict | None:
+def handle_interaction_component(custom_id: str, body: dict, data: dict) -> dict | None:
     if custom_id.startswith("accept_button_"):
         game_id = custom_id.replace("accept_button_", "")
         return handle_accept_button(game_id)

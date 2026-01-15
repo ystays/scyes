@@ -6,10 +6,9 @@ from fastapi import FastAPI, Request, HTTPException
 from dotenv import load_dotenv
 import uvicorn
 
-from game import get_result, get_shuffled_options
 from utils import get_random_emoji
-from discord import InteractionType, InteractionResponseType, ComponentType, MessageFlags
-from interactions import handle_challenge_interaction_command, handle_accept_button, handle_interaction_component
+from discord import InteractionType, InteractionResponseType
+from interactions import handle_challenge_interaction_command, handle_interaction_component
 
 import logging
 
@@ -17,9 +16,6 @@ import logging
 load_dotenv()
 
 app = FastAPI(title="My API Server")
-
-# Store for in-progress games (message_id -> game_state)
-active_games = {}
 
 # Discord verification
 PUBLIC_KEY = os.getenv("PUBLIC_KEY")
@@ -78,53 +74,48 @@ async def interactions(request: Request):
         raise HTTPException(status_code=401, detail="Invalid signature")
 
     body = await request.json()
-    interaction_type = body.get("type")
+    interaction_type = InteractionType(body.get("type"))
     interaction_id = body.get("id")
-    data = body.get("data", {})
+    data: dict = body.get("data", {})
 
     # Handle PING (verification request)
     if interaction_type == InteractionType.ping:
-        return {"type": InteractionResponseType.pong}
+        return {"type": InteractionResponseType.pong.value}
 
     # Handle APPLICATION_COMMAND
     if interaction_type == InteractionType.application_command:
-        command_name = data.get("name")
+        command_name: str = data.get("name", "")
 
         match command_name:
             case "test":
                 logging.info("[interactions] Test command")
                 return {
-                    "type": InteractionResponseType.channel_message,
+                    "type": InteractionResponseType.channel_message.value,
                     "data": {
                         "content": f"hello world {get_random_emoji()}"
                     }
                 }
 
             case "challenge":
-                user_id = body.get("member", {}).get("user", {}).get("id") or body.get("user", {}).get("id")
-                object_name = data.get("options", [{}])[0].get("value", "").lower()
-                # Store active game
-                active_games[interaction_id] = {
-                    "challenger_id": user_id,
-                    "challenger_choice": object_name,
-                }
+                user_id: str = body.get("member", {}).get("user", {}).get("id") or body.get("user", {}).get("id")
+                object_name: str = data.get("options", [{}])[0].get("value", "").lower()
 
-                return handle_challenge_interaction_command(user_id, object_name)
+                return handle_challenge_interaction_command(user_id, object_name, interaction_id)
 
             case _:
                 logging.warning("[interactions] Invalid command")
-                return {"type": InteractionResponseType.channel_message, "data": {"content": f"Unknown command: {command_name}"}}
+                return {"type": InteractionResponseType.channel_message.value, "data": {"content": f"Unknown command: {command_name}"}}
 
     # Handle MESSAGE_COMPONENT (buttons, select menus)
     if interaction_type == InteractionType.component:
         logging.info("[interactions] Message component interaction")
         custom_id = data.get("custom_id", "")
-        resp = handle_interaction_component(custom_id)
+        resp = handle_interaction_component(custom_id, body, data)
         if resp:
             return resp
 
     return {
-        "type": InteractionResponseType.channel_message, 
+        "type": InteractionResponseType.channel_message.value, 
         "data": {
             "content": "Unknown interaction type"
         }

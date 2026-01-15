@@ -7,8 +7,6 @@ import dotenv
 from game import get_result, get_rps_choices, get_shuffled_options
 from utils import get_random_emoji
 
-import ngrok
-
 
 # Load environment variables
 dotenv.load_dotenv()
