@@ -11,6 +11,8 @@ from utils import get_random_emoji
 from discord import InteractionType, InteractionResponseType, ComponentType, MessageFlags
 from interactions import handle_challenge_interaction_command, handle_accept_button, handle_interaction_component
 
+import logging
+
 # Load environment variables
 load_dotenv()
 
@@ -90,6 +92,7 @@ async def interactions(request: Request):
 
         match command_name:
             case "test":
+                logging.info("[interactions] Test command")
                 return {
                     "type": InteractionResponseType.channel_message,
                     "data": {
@@ -109,10 +112,12 @@ async def interactions(request: Request):
                 return handle_challenge_interaction_command(user_id, object_name)
 
             case _:
+                logging.warning("[interactions] Invalid command")
                 return {"type": InteractionResponseType.channel_message, "data": {"content": f"Unknown command: {command_name}"}}
 
     # Handle MESSAGE_COMPONENT (buttons, select menus)
     if interaction_type == InteractionType.component:
+        logging.info("[interactions] Message component interaction")
         custom_id = data.get("custom_id", "")
         resp = handle_interaction_component(custom_id)
         if resp:
