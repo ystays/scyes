@@ -36,7 +36,7 @@ def handle_challenge_interaction_command(
     }
 
 
-def handle_accept_button(game_id) -> dict:
+def handle_accept_button(game_id: str) -> dict:
     return {
         "type": InteractionResponseType.channel_message.value,
         "data": {

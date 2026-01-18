@@ -48,7 +48,7 @@ RPS_CHOICES: dict = {
 }
 
 
-def get_result(p1, p2):
+def get_result(p1, p2) -> str:
     """Calculate game result between two players."""
     game_result = None
 
@@ -77,7 +77,7 @@ def get_result(p1, p2):
     return format_result(game_result)
 
 
-def format_result(result):
+def format_result(result) -> str:
     """Format the game result as a Discord message."""
     win = result["win"]
     lose = result["lose"]
@@ -89,12 +89,12 @@ def format_result(result):
         return f"<@{win['id']}>'s **{win['objectName']}** {verb} <@{lose['id']}>'s **{lose['objectName']}**"
 
 
-def get_rps_choices():
+def get_rps_choices() -> list:
     """Get all available RPS choices."""
     return list(RPS_CHOICES.keys())
 
 
-def get_shuffled_options():
+def get_shuffled_options() -> list:
     """Get shuffled options for select menu."""
     choices = get_rps_choices()
     options = []

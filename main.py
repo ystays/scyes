@@ -4,8 +4,8 @@ from discord.ext import commands
 from discord import app_commands
 import dotenv
 
-from game import get_result, get_rps_choices, get_shuffled_options
-from utils import get_random_emoji
+from server.game import get_result, get_rps_choices, get_shuffled_options
+from server.utils import get_random_emoji
 
 
 # Load environment variables
