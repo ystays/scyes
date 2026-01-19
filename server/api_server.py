@@ -15,6 +15,7 @@ from interactions import (
 )
 
 import logging
+logging.basicConfig(level=logging.INFO)
 
 # Load environment variables
 load_dotenv()

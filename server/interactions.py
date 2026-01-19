@@ -40,7 +40,7 @@ def handle_accept_button(game_id: str) -> dict:
     return {
         "type": InteractionResponseType.channel_message.value,
         "data": {
-            "flags": MessageFlags.ephemeral,  # Ephemeral
+            "flags": 64,  # Ephemeral (should be MessageFlags.ephemeral)
             "content": "What is your object of choice?",
             "components": [
                 {
