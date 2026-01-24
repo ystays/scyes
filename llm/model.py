@@ -1,5 +1,6 @@
 from langchain_ollama import ChatOllama
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessageChunk
+from typing import Iterator
 
 llm = ChatOllama(
     model="gemma3:4b",
@@ -25,3 +26,10 @@ def invoke(message: str) -> str:
         content = f"Error invoking LLM: {str(e)}"
 
     return content
+
+def stream(message: str) -> Iterator[AIMessageChunk]:
+    try:
+        response = llm.stream(message)
+    except Exception as e:
+       return Iterator(AIMessageChunk(content=f"Error streaming LLM response: {str(e)}")) 
+    return response
