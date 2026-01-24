@@ -22,3 +22,10 @@ ngrok service start
 
 ## discord
 Interactions endpoint: https://evidently-loyal-trout.ngrok-free.app/interactions
+
+## docker
+```
+sudo docker build -t scyes:0.0.1 .
+
+sudo docker run scyes:0.0.1
+```
