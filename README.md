@@ -19,3 +19,6 @@ https://ngrok.com/docs/agent/config
 ngrok service install --config C:\ngrok\ngrok.yml
 ngrok service start
 ```
+
+## discord
+Interactions endpoint: https://evidently-loyal-trout.ngrok-free.app/interactions

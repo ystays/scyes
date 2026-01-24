@@ -1,6 +1,7 @@
-from discord import InteractionResponseType, ComponentType, MessageFlags
+from discord import InteractionResponseType, ComponentType
 from game import get_result, get_shuffled_options
 from utils import get_random_emoji
+from langchain_ollama import ChatOllama
 
 # Store for in-progress games (message_id -> game_state)
 active_games = {}
@@ -97,3 +98,22 @@ def handle_interaction_component(custom_id: str, body: dict, data: dict) -> dict
         }
 
     return None
+
+# Initialize LLM
+llm = ChatOllama(
+    model="gemma3:4b",
+    temperature=0,
+)
+
+def handle_llm_command(message: str) -> dict:
+    """Handle /llm command by calling the LLM."""
+    try:
+        response = llm.invoke(message)
+        content = response.content
+    except Exception as e:
+        content = f"Error calling LLM: {str(e)}"
+
+    return {
+        "type": InteractionResponseType.channel_message.value,
+        "data": {"content": content},
+    }
