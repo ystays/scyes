@@ -42,4 +42,4 @@ ENTRYPOINT []
 USER nonroot
 
 # Run the bot application
-CMD ["uv", "run", "--host", "0.0.0.0", "bot.py"]
+CMD ["uv", "run", "bot.py"]
