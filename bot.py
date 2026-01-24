@@ -1,12 +1,14 @@
 import discord
 from discord.ext import commands
+from discord import Message, Intents
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from dotenv import load_dotenv
 import os
 from llm.model import invoke, stream
 from langchain_core.messages import AIMessageChunk
 from typing import Iterator
 
-intents = discord.Intents.default()
+intents = Intents.default()
 intents.message_content = True
 
 load_dotenv()
@@ -23,11 +25,14 @@ async def add(ctx, left: int, right: int):
     await ctx.send(left + right)
 
 @bot.command()
-async def llm(ctx, *, input: str):
-    message = await ctx.send("thinking...")
+async def llm(ctx: commands.Context, *, input: str):
+    message: Message = await ctx.send("thinking...")
     
+    msg_history: list[BaseMessage] = [AIMessage(content=msg.content) if msg.author.bot else HumanMessage(content=msg.author.name + ": " + msg.content) async for msg in message.channel.history(limit=8)]
+
     buffer = ""
-    response: Iterator[AIMessageChunk] = stream(input)
+    msg_history.reverse()
+    response: Iterator[AIMessageChunk] = stream(input, msg_history[:-2])
     
     for chunk in response:
         buffer += chunk.content

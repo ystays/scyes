@@ -1,5 +1,5 @@
 from langchain_ollama import ChatOllama
-from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage
+from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage, BaseMessage
 from typing import Iterator
 
 GEMMA_3_27B = "gemma3:27b"
@@ -32,12 +32,13 @@ def invoke(message: str) -> str:
 
     return content
 
-def stream(input: str) -> Iterator[AIMessageChunk]:
+def stream(input: str, msg_history: list[BaseMessage]) -> Iterator[AIMessageChunk]:
     messages = [
         SystemMessage(
             content="You're a chatbot. Please keep your responses concise, specifically to below 300 words.",
         ),
-        HumanMessage(content=input)
+        *msg_history,
+        HumanMessage(content=input),
     ]
     
     try:
