@@ -24,14 +24,18 @@ async def add(ctx, left: int, right: int):
 
 @bot.command()
 async def llm(ctx, *, input: str):
-    message = await ctx.send("Thinking...")
+    message = await ctx.send("thinking...")
     
     buffer = ""
     response: Iterator[AIMessageChunk] = stream(input)
     
     for chunk in response:
         buffer += chunk.content
-        
+
+        # If LLM output is too long, just truncate and exit for now
+        if len(buffer) > 2000:
+            break
+
         # Periodically update message (e.g., every 5 chunks to reduce API load)
         if len(buffer) % 5 == 0:
             await message.edit(content=buffer + "...")

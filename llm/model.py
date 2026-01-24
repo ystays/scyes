@@ -1,9 +1,14 @@
 from langchain_ollama import ChatOllama
-from langchain_core.messages import AIMessageChunk
+from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage
 from typing import Iterator
 
+GEMMA_3_27B = "gemma3:27b"
+GEMMA_3_4B = "gemma3:4b"
+GPT_OSS_20B = "gpt-oss:20b"
+MISTRAL_SMALL_24B = "mistral-small:24b"
+
 llm = ChatOllama(
-    model="gemma3:4b",
+    model=GEMMA_3_4B,
     temperature=0,
 )
 
@@ -27,9 +32,16 @@ def invoke(message: str) -> str:
 
     return content
 
-def stream(message: str) -> Iterator[AIMessageChunk]:
+def stream(input: str) -> Iterator[AIMessageChunk]:
+    messages = [
+        SystemMessage(
+            content="You're a chatbot. Please keep your responses concise, specifically to below 300 words.",
+        ),
+        HumanMessage(content=input)
+    ]
+    
     try:
-        response = llm.stream(message)
+        response = llm.stream(messages)
     except Exception as e:
        return Iterator(AIMessageChunk(content=f"Error streaming LLM response: {str(e)}")) 
     return response
