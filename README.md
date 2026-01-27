@@ -26,7 +26,7 @@ Interactions endpoint: https://evidently-loyal-trout.ngrok-free.app/interactions
 ## docker
 ```
 # Build Docker image
-sudo docker build -t scyes:0.0.1 .
+sudo docker build -t scyes .
 
 # Run Docker container (detach, with host network)
 sudo docker run -d --network host scyes:0.0.1
