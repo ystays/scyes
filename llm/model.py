@@ -1,6 +1,7 @@
 from langchain_ollama import ChatOllama
 from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage, BaseMessage
 from typing import Iterator
+from graph import scyes_agent
 
 GEMMA_3_27B = "gemma3:27b"
 GEMMA_3_4B = "gemma3:4b"
@@ -25,7 +26,7 @@ llm = ChatOllama(
 def invoke(message: str) -> str:
     """Handle llm command by invoking the LLM."""
     try:
-        response = llm.invoke(message)
+        scyes_agent.invoke(message)
         content = response.content
     except Exception as e:
         content = f"Error invoking LLM: {str(e)}"

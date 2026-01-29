@@ -1,4 +1,5 @@
 from langchain.agents import create_agent
+from langchain.messages import SystemMessage
 
 
 llm = ChatOllama(
@@ -18,12 +19,8 @@ def get_weather(location: str) -> str:
 
 tools = [search, get_weather]
 
-agent = create_agent(llm, system_prompt=SystemMessage(content=[
+scyes_agent = create_agent(llm, system_prompt=SystemMessage(content=[
     {
         "type": "text",
-        "text": "You are an AI assistant tasked with analyzing literary works.",
+        "text": "You are an AI assistant.",
     }]), tools=tools)
-
-agent.invoke({
-    "messages": [{"role": "user", "content": "Hi"}]
-})
