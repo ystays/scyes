@@ -4,7 +4,7 @@ from discord import Message, Intents
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from dotenv import load_dotenv
 import os
-from llm.model import invoke, stream
+from llm.graph import invoke_agent, stream, stream_agent
 from langchain_core.messages import AIMessageChunk
 from typing import Iterator
 
@@ -48,5 +48,31 @@ async def llm(ctx: commands.Context, *, input: str):
     # 4. Final update
     await message.edit(content=buffer)
 
+@bot.command()
+async def llma(ctx: commands.Context, *, input: str):
+    message: Message = await ctx.send("thinking...")
+    
+    msg_history: list[BaseMessage] = [AIMessage(content=msg.content) if msg.author.bot else HumanMessage(content=msg.author.name + ": " + msg.content) async for msg in message.channel.history(limit=8)]
+
+    buffer = ""
+    msg_history.reverse()
+    response: Iterator[dict[str, Any] | Any] = stream_agent(input, msg_history[:-2])
+    
+    for token, metadata in response:
+        if len(token.content_blocks) == 0 or token.content_blocks[-1]["type"] != "text":
+            continue
+
+        buffer += token.content_blocks[0]["text"]
+
+        # If LLM output is too long, just truncate and exit for now
+        if len(buffer) > 2000:
+            break
+
+        # Periodically update message (e.g., every 5 chunks to reduce API load)
+        if len(buffer) % 5 == 0:
+            await message.edit(content=buffer + "...")
+            
+    # 4. Final update
+    await message.edit(content=buffer)
 
 bot.run(os.getenv("DISCORD_TOKEN"))
