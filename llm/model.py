@@ -4,12 +4,14 @@ from typing import Iterator
 from graph import scyes_agent
 
 GEMMA_3_27B = "gemma3:27b"
+GEMMA_3_12B = "gemma3:12b"
 GEMMA_3_4B = "gemma3:4b"
 GPT_OSS_20B = "gpt-oss:20b"
 MISTRAL_SMALL_24B = "mistral-small:24b"
 
+
 llm = ChatOllama(
-    model=GEMMA_3_4B,
+    model=GEMMA_3_12B,
     temperature=0,
 )
 
@@ -23,7 +25,7 @@ llm = ChatOllama(
 # ai_msg: AIMessage = llm.invoke(messages)
 # print(ai_msg.content)
 
-def invoke(message: str) -> str:
+def invoke_agent(message: str) -> str:
     """Handle llm command by invoking the LLM."""
     try:
         scyes_agent.invoke(message)
