@@ -1,5 +1,7 @@
 # scyes
 
+A locally-hosted LLM Discord bot
+
 ## uv
 https://docs.astral.sh/uv/getting-started/installation/#installation-methods
 
@@ -34,3 +36,7 @@ sudo docker run -d --network host scyes:0.0.1
 # docker-compose
 docker-compose exec ollama ollama pull <model_name>
 ```
+
+
+## MCP
+Home Assistant: https://www.home-assistant.io/integrations/mcp_server/
