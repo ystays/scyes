@@ -1,9 +1,6 @@
-import os
-from dotenv import load_dotenv
 import configparser
 from pathlib import Path
 
-load_dotenv()  # Load from .env if it exists
 
 class Config:
     def __init__(self, config_file='config.ini'):
@@ -11,6 +8,19 @@ class Config:
         if not Path(config_file).exists():
             raise FileNotFoundError(f"Config file not found: {config_file}")
         self.config.read(config_file)
+
+        self.environment: str = "dev"
+
+        self.logging_level: str = self.config['logging'].get("level")
+        self.logging_file: str = self.config['logging'].get("file")
+
+        self.discord_app_id: str = self.config['discord'].get("APP_ID")
+        self.discord_token: str = self.config['discord'].get("DISCORD_TOKEN")
+        self.discord_public_key: str = self.config['discord'].get("PUBLIC_KEY")
+
+        self.langfuse_secret_key: str = self.config['langfuse'].get("LANGFUSE_SECRET_KEY")
+        self.langfuse_public_key: str = self.config['langfuse'].get("LANGFUSE_PUBLIC_KEY")
+        self.langfuse_base_url: str = self.config['langfuse'].get("LANGFUSE_BASE_URL")
 
     def get_database_config(self):
         db = self.config['database']
@@ -23,7 +33,6 @@ class Config:
         }
 
     # DATABASE_URL = os.getenv("DATABASE_URL")
-    # API_KEY = os.getenv("API_KEY")
     # DEBUG = os.getenv("DEBUG", "False").lower() == "true"  # Default to False
 
 app_config = Config()

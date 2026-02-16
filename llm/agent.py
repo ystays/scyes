@@ -1,8 +1,15 @@
+from typing import Iterator, Any
+
 from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
-from llm.model import GEMMA_3_12B
 from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage, BaseMessage
-from typing import Iterator, Any
+from llm.model import GEMMA_3_12B
+
+from observability.langfuse import langfuse
+from langfuse.langchain import CallbackHandler
+
+# Initialize Langfuse CallbackHandler for Langchain (tracing)
+langfuse_handler = CallbackHandler()
 
 llm = ChatOllama(
     model=GEMMA_3_12B,
@@ -21,7 +28,10 @@ scyes_agent = create_agent(llm, system_prompt=SystemMessage(content=[
 def invoke_agent(message: str) -> str:
     """Handle llm command by invoking the LLM."""
     try:
-        response = scyes_agent.invoke(message)
+        response = scyes_agent.invoke(
+            message,
+            config={"callbacks": [langfuse_handler]}
+        )
         content = response.content
     except Exception as e:
         content = f"Error invoking LLM: {str(e)}"
@@ -37,7 +47,11 @@ def stream_agent(input: str, msg_history: list[BaseMessage]) -> Iterator[dict[st
     ]
     
     try:
-        response = scyes_agent.stream({"messages": messages}, stream_mode="messages")
+        response = scyes_agent.stream(
+            {"messages": messages},
+            stream_mode="messages",
+            config={"callbacks": [langfuse_handler]}
+        )
     except Exception as e:
        return Iterator(AIMessageChunk(content=f"Error streaming LLM response: {str(e)}")) 
     return response

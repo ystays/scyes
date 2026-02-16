@@ -8,6 +8,8 @@ from llm.llm import stream
 from langchain_core.messages import AIMessageChunk
 from typing import Iterator, Any
 
+from config import app_config 
+
 intents = Intents.default()
 intents.message_content = True
 
@@ -25,11 +27,8 @@ async def add(ctx, left: int, right: int):
     await ctx.send(left + right)
 
 @bot.command()
-async def help(ctx):
-    await ctx.send("Use >llm to chat with 4B model (faster responses), use >llma to chat with agent (tool calls, slower responses)")
-
-@bot.command()
 async def llm(ctx: commands.Context, *, input: str):
+    """Chat with 4B model (faster responses)"""
     message: Message = await ctx.send("thinking...")
     
     msg_history: list[BaseMessage] = [AIMessage(content=msg.content) if msg.author.bot else HumanMessage(content=msg.author.name + ": " + msg.content) async for msg in message.channel.history(limit=8)]
@@ -54,6 +53,7 @@ async def llm(ctx: commands.Context, *, input: str):
 
 @bot.command()
 async def llma(ctx: commands.Context, *, input: str):
+    """Chat with agent (tool calls, slower responses)"""
     message: Message = await ctx.send("thinking...")
     
     msg_history: list[BaseMessage] = [AIMessage(content=msg.content) if msg.author.bot else HumanMessage(content=msg.author.name + ": " + msg.content) async for msg in message.channel.history(limit=8)]
@@ -79,4 +79,5 @@ async def llma(ctx: commands.Context, *, input: str):
     # 4. Final update
     await message.edit(content=buffer)
 
-bot.run(os.getenv("DISCORD_TOKEN"))
+# bot.run(os.getenv("DISCORD_TOKEN"))
+bot.run(app_config.discord_token)
