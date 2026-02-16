@@ -42,7 +42,7 @@ def stream_agent(input: str, msg_history: list[BaseMessage]) -> Iterator[dict[st
         SystemMessage(
             content="You're a chatbot. Please keep your responses concise, specifically to below 300 words.",
         ),
-        *msg_history,
+        # *msg_history,  # remove history to reduce context size
         HumanMessage(content=input),
     ]
     

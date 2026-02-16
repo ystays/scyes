@@ -7,9 +7,11 @@ https://docs.astral.sh/uv/getting-started/installation/#installation-methods
 
 ```
 uv run api_server.py
+uv run bot.py
 ```
 
 ## ngrok
+Ngrok is only needed for Discord interactions
 ```
 ngrok http --domain=evidently-loyal-trout.ngrok-free.app 8000
 ```
