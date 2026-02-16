@@ -1,5 +1,5 @@
 # Use a Python image with uv pre-installed
-FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim
+FROM ghcr.io/astral-sh/uv:python3.13-trixie-slim
 
 # Setup a non-root user
 RUN groupadd --system --gid 999 nonroot \
@@ -29,6 +29,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Then, add the rest of the project source code and install it
 # Installing separately from its dependencies allows optimal layer caching
 COPY . /app
+
+RUN chown -R nonroot:nonroot /app
+
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
