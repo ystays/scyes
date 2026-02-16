@@ -14,16 +14,15 @@ from interactions import (
     handle_interaction_component,
 )
 
+from config import app_config
+
 import logging
 logging.basicConfig(level=logging.INFO)
-
-# Load environment variables
-load_dotenv()
 
 app = FastAPI(title="My API Server")
 
 # Discord verification
-PUBLIC_KEY = os.getenv("PUBLIC_KEY")
+PUBLIC_KEY = app_config.discord_public_key
 verify_key = nacl.signing.VerifyKey(bytes.fromhex(PUBLIC_KEY)) if PUBLIC_KEY else None
 
 
