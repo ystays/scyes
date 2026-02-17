@@ -3,7 +3,7 @@ from typing import Iterator, Any
 from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
 from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage, BaseMessage
-from llm.model import GEMMA_3_12B
+from llm.model import QWEN3_8B
 
 from integrations.tavily import tavily_search
 
@@ -14,7 +14,7 @@ from langfuse.langchain import CallbackHandler
 langfuse_handler = CallbackHandler()
 
 llm = ChatOllama(
-    model=GEMMA_3_12B,
+    model=QWEN3_8B,
     temperature=0,
 )
 

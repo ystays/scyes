@@ -1,7 +1,7 @@
 from langchain_tavily import TavilySearch
 from config import app_config
 
-tool = TavilySearch(
+tavily_search = TavilySearch(
     max_results=2,
     topic="general",
     tavily_api_key=app_config.tavily_api_key
