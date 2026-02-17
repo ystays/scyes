@@ -26,3 +26,9 @@ LANGFUSE_SECRET_KEY =
 LANGFUSE_PUBLIC_KEY =
 LANGFUSE_BASE_URL = https://us.cloud.langfuse.com
 
+[tavily]
+TAVILY_API_KEY = 
+
+[homeassistant]
+HOME_ASSISTANT_TOKEN = 
+HOME_ASSISTANT_BASE_URL = localhost

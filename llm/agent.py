@@ -5,6 +5,8 @@ from langchain_ollama import ChatOllama
 from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage, BaseMessage
 from llm.model import GEMMA_3_12B
 
+from integrations.tavily import tavily_search
+
 from observability.langfuse import langfuse
 from langfuse.langchain import CallbackHandler
 
@@ -17,7 +19,7 @@ llm = ChatOllama(
 )
 
 # Add tools here
-tools = []
+tools = [tavily_search]
 
 scyes_agent = create_agent(llm, system_prompt=SystemMessage(content=[
     {

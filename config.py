@@ -22,6 +22,11 @@ class Config:
         self.langfuse_public_key: str = self.config['langfuse'].get("LANGFUSE_PUBLIC_KEY")
         self.langfuse_base_url: str = self.config['langfuse'].get("LANGFUSE_BASE_URL")
 
+        self.tavily_api_key: str = self.config['tavily'].get("TAVILY_API_KEY")
+
+        self.home_assistant_base_url: str = self.config['homeassistant'].get("HOME_ASSISTANT_BASE_URL")
+        self.home_assistant_token: str = self.config['homeassistant'].get("HOME_ASSISTANT_TOKEN")
+
     def get_database_config(self):
         db = self.config['database']
         return {
