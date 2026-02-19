@@ -3,10 +3,10 @@ from discord import Message, Intents
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from dotenv import load_dotenv
 import os
-from llm.agent import stream_agent
-from llm.llm import stream
+from llm.agent import astream_agent
+from llm.llm import astream
 from langchain_core.messages import AIMessageChunk
-from typing import Iterator, Any
+from typing import AsyncIterator, Any
 
 from config import app_config 
 
@@ -35,9 +35,9 @@ async def llm(ctx: commands.Context, *, input: str):
 
     buffer = ""
     msg_history.reverse()
-    response: Iterator[AIMessageChunk] = stream(input, msg_history[:-2])
+    response: AsyncIterator[AIMessageChunk] = astream(input, msg_history[:-2])
     
-    for chunk in response:
+    async for chunk in response:
         buffer += chunk.content
 
         # If LLM output is too long, just truncate and exit for now
@@ -60,9 +60,9 @@ async def llma(ctx: commands.Context, *, input: str):
 
     buffer = ""
     msg_history.reverse()
-    response: Iterator[dict[str, Any] | Any] = stream_agent(input, msg_history[:-2])
+    response: AsyncIterator[dict[str, Any] | Any] = astream_agent(input, msg_history[:-2])
     
-    for token, metadata in response:
+    async for token, metadata in response:
         if len(token.content_blocks) == 0 or token.content_blocks[-1]["type"] != "text":
             continue
 

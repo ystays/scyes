@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import AsyncIterator
 
 from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage, BaseMessage
 from langchain_ollama import ChatOllama
@@ -15,7 +15,7 @@ llm = ChatOllama(
     temperature=0,
 )
 
-def stream(input: str, msg_history: list[BaseMessage]) -> Iterator[AIMessageChunk]:
+def astream(input: str, msg_history: list[BaseMessage]) -> AsyncIterator[AIMessageChunk]:
     messages = [
         SystemMessage(
             content="You're a chatbot. Please keep your responses concise, specifically to below 300 words.",
@@ -25,7 +25,7 @@ def stream(input: str, msg_history: list[BaseMessage]) -> Iterator[AIMessageChun
     ]
     
     try:
-        response = llm.stream(
+        response = llm.astream(
             messages, 
             config={"callbacks": [langfuse_handler]}
         )

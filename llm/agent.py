@@ -1,4 +1,4 @@
-from typing import Iterator, Any
+from typing import AsyncIterator, Any
 
 from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
@@ -13,10 +13,8 @@ from langfuse.langchain import CallbackHandler
 # Initialize Langfuse CallbackHandler for Langchain (tracing)
 langfuse_handler = CallbackHandler()
 
-llm = ChatOllama(
-    model=QWEN3_8B,
-    temperature=0,
-)
+from llm.google import google_model
+llm = google_model
 
 # Add tools here
 tools = [tavily_search]
@@ -39,7 +37,7 @@ def invoke_agent(message: str) -> str:
         content = f"Error invoking LLM: {str(e)}"
     return content
 
-def stream_agent(input: str, msg_history: list[BaseMessage]) -> Iterator[dict[str, Any] | Any]:
+def astream_agent(input: str, msg_history: list[BaseMessage]) -> AsyncIterator[dict[str, Any] | Any]:
     messages = [
         SystemMessage(
             content="You're a chatbot. Please keep your responses concise, specifically to below 300 words.",
@@ -49,7 +47,7 @@ def stream_agent(input: str, msg_history: list[BaseMessage]) -> Iterator[dict[st
     ]
     
     try:
-        response = scyes_agent.stream(
+        response = scyes_agent.astream(
             {"messages": messages},
             stream_mode="messages",
             config={"callbacks": [langfuse_handler]}

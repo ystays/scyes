@@ -27,6 +27,8 @@ class Config:
         self.home_assistant_base_url: str = self.config['homeassistant'].get("HOME_ASSISTANT_BASE_URL")
         self.home_assistant_token: str = self.config['homeassistant'].get("HOME_ASSISTANT_TOKEN")
 
+        self.google_api_key: str = self.config['google'].get('GOOGLE_API_KEY')
+
     def get_database_config(self):
         db = self.config['database']
         return {

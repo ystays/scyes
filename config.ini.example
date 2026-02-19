@@ -32,3 +32,6 @@ TAVILY_API_KEY =
 [homeassistant]
 HOME_ASSISTANT_TOKEN = 
 HOME_ASSISTANT_BASE_URL = localhost
+
+[google]
+GOOGLE_API_KEY = 
