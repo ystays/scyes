@@ -7,8 +7,10 @@ from llm.agent import astream_agent
 from llm.llm import astream
 from langchain_core.messages import AIMessageChunk
 from typing import AsyncIterator, Any
+import logging
 
-from config import app_config 
+from config import app_config
+from observability.otel import configure_otel, tracer
 
 intents = Intents.default()
 intents.message_content = True
@@ -16,6 +18,30 @@ intents.message_content = True
 load_dotenv()
 
 bot = commands.Bot(command_prefix='>', intents=intents)
+
+
+configure_otel()
+logger = logging.getLogger(__name__)
+
+
+@bot.before_invoke
+async def track_command(ctx: commands.Context) -> None:
+    command_name = ctx.command.qualified_name if ctx.command else "unknown"
+    with tracer.start_as_current_span("discord.command") as span:
+        span.set_attribute("discord.command", command_name)
+        span.set_attribute("discord.user_id", str(ctx.author.id))
+        span.set_attribute("discord.channel_id", str(ctx.channel.id))
+        span.set_attribute("discord.guild_id", str(ctx.guild.id) if ctx.guild else "dm")
+        logger.info(
+            "Discord command called",
+            extra={
+                "command": command_name,
+                "user_id": str(ctx.author.id),
+                "channel_id": str(ctx.channel.id),
+                "guild_id": str(ctx.guild.id) if ctx.guild else "dm",
+            },
+        )
+
 
 @bot.command()
 async def ping(ctx):
