@@ -1,9 +1,12 @@
+[app]
+environment = dev
+
 [database]
 host = localhost
 port = 5432
 username = app_user
-password = 
-db_name = 
+password =
+db_name =
 pool_size = 10
 ssl_enabled = true
 
@@ -16,6 +19,13 @@ debug = false
 level = INFO
 file = app.log
 
+[grafana_cloud]
+LOGS_ENABLED = false
+LOGS_ENDPOINT = https://logs-prod-XXX.grafana.net/loki/api/v1/push
+LOGS_USERNAME = <grafana_cloud_instance_id>
+LOGS_API_KEY = <grafana_cloud_api_key>
+LOGS_APP = scyes
+
 [discord]
 APP_ID =
 DISCORD_TOKEN =
@@ -27,11 +37,11 @@ LANGFUSE_PUBLIC_KEY =
 LANGFUSE_BASE_URL = https://us.cloud.langfuse.com
 
 [tavily]
-TAVILY_API_KEY = 
+TAVILY_API_KEY =
 
 [homeassistant]
-HOME_ASSISTANT_TOKEN = 
+HOME_ASSISTANT_TOKEN =
 HOME_ASSISTANT_BASE_URL = localhost
 
 [google]
-GOOGLE_API_KEY = 
+GOOGLE_API_KEY =

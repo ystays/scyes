@@ -9,10 +9,26 @@ class Config:
             raise FileNotFoundError(f"Config file not found: {config_file}")
         self.config.read(config_file)
 
-        self.environment: str = "dev"
+        self.environment: str = self.config.get('app', 'environment', fallback='dev')
 
         self.logging_level: str = self.config['logging'].get("level")
         self.logging_file: str = self.config['logging'].get("file")
+
+        self.grafana_cloud_logs_enabled: bool = self.config.getboolean(
+            'grafana_cloud', 'LOGS_ENABLED', fallback=False
+        )
+        self.grafana_cloud_logs_endpoint: str = self.config.get(
+            'grafana_cloud', 'LOGS_ENDPOINT', fallback=''
+        )
+        self.grafana_cloud_logs_username: str = self.config.get(
+            'grafana_cloud', 'LOGS_USERNAME', fallback=''
+        )
+        self.grafana_cloud_logs_api_key: str = self.config.get(
+            'grafana_cloud', 'LOGS_API_KEY', fallback=''
+        )
+        self.grafana_cloud_logs_app: str = self.config.get(
+            'grafana_cloud', 'LOGS_APP', fallback='scyes'
+        )
 
         self.discord_app_id: str = self.config['discord'].get("APP_ID")
         self.discord_token: str = self.config['discord'].get("DISCORD_TOKEN")
@@ -39,7 +55,5 @@ class Config:
             'pool_size': db.getint('pool_size', fallback=5)
         }
 
-    # DATABASE_URL = os.getenv("DATABASE_URL")
-    # DEBUG = os.getenv("DEBUG", "False").lower() == "true"  # Default to False
 
 app_config = Config()
