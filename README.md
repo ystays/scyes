@@ -42,3 +42,22 @@ docker-compose exec ollama ollama pull <model_name>
 
 ## MCP
 Home Assistant: https://www.home-assistant.io/integrations/mcp_server/
+
+## Grafana Cloud Logs
+This bot can push structured logs directly to Grafana Cloud Logs (Loki API).
+
+1. Update `config.ini` from `config.ini.example` with your Grafana Cloud credentials in `[grafana_cloud]`.
+2. Set `LOGS_ENABLED = true`.
+3. Start the bot as usual (`uv run bot.py`).
+
+Expected values:
+- `LOGS_ENDPOINT`: Grafana Cloud Loki push endpoint (e.g., `https://logs-prod-XXX.grafana.net/loki/api/v1/push`)
+- `LOGS_USERNAME`: Grafana Cloud Logs instance ID
+- `LOGS_API_KEY`: Grafana Cloud API key with `logs:write`
+- `LOGS_APP`: app label for filtering in Explore
+
+Once running, query in Grafana Explore using labels like:
+```
+{app="scyes",service="discord-bot"}
+```
+
