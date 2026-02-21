@@ -35,3 +35,8 @@ HOME_ASSISTANT_BASE_URL = localhost
 
 [google]
 GOOGLE_API_KEY = 
+
+[otel]
+ENABLED = false
+SERVICE_NAME = scyes
+OTLP_HTTP_ENDPOINT = http://localhost:4318/v1/traces
