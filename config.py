@@ -31,7 +31,7 @@ class Config:
 
         self.otel_enabled: bool = self.config['otel'].get('ENABLED', 'false') == 'true'
         self.otel_service_name: str = self.config['otel'].get('SERVICE_NAME', 'scyes')
-        self.otel_collector_endpoint: str = self.config['otel'].get('OTLP_HTTP_ENDPOINT', 'http://localhost:4318/v1/traces')
+        self.otel_collector_endpoint: str = self.config['otel'].get('OTLP_HTTP_ENDPOINT', 'http://localhost:4318')
 
     def get_database_config(self):
         db = self.config['database']
