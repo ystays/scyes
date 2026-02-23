@@ -1,6 +1,7 @@
 receivers:
   otlp:
     protocols:
+      grpc:
       http:
         endpoint: 0.0.0.0:4318
 
@@ -10,6 +11,8 @@ processors:
 exporters:
   logging:
     verbosity: detailed
+  otlphttp:
+    endpoint: https://otlp-gateway-prod-ap-southeast-1.grafana.net/otlp
 
 service:
   pipelines:
@@ -17,3 +20,7 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [logging]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp]

@@ -12,6 +12,8 @@ import logging
 from config import app_config
 from observability.otel import configure_otel, tracer
 
+import logging
+
 intents = Intents.default()
 intents.message_content = True
 
