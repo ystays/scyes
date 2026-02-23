@@ -51,11 +51,11 @@ Collector config documentation: https://opentelemetry.io/docs/collector/configur
 ## Integrations and MCP
 Home Assistant: https://www.home-assistant.io/integrations/mcp_server/
 
-## Discord Interactions
-
 ---
 
-## ngrok
+## Other: Discord Interactions
+
+### ngrok
 Ngrok is only needed for Discord interactions
 ```
 ngrok http --domain=evidently-loyal-trout.ngrok-free.app 8000
@@ -69,5 +69,5 @@ ngrok service install --config C:\ngrok\ngrok.yml
 ngrok service start
 ```
 
-## discord
+### discord
 Interactions endpoint: https://evidently-loyal-trout.ngrok-free.app/interactions
