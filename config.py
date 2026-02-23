@@ -29,10 +29,9 @@ class Config:
 
         self.google_api_key: str = self.config['google'].get('GOOGLE_API_KEY')
 
-        otel_config = self.config['otel'] if self.config.has_section('otel') else {}
-        self.otel_enabled: bool = otel_config.get('ENABLED', 'false') == 'true'
-        self.otel_service_name: str = otel_config.get('SERVICE_NAME', 'scyes')
-        self.otel_collector_endpoint: str = otel_config.get('OTLP_HTTP_ENDPOINT', 'http://localhost:4318/v1/traces')
+        self.otel_enabled: bool = self.config['otel'].get('ENABLED', 'false') == 'true'
+        self.otel_service_name: str = self.config['otel'].get('SERVICE_NAME', 'scyes')
+        self.otel_collector_endpoint: str = self.config['otel'].get('OTLP_HTTP_ENDPOINT', 'http://localhost:4318')
 
     def get_database_config(self):
         db = self.config['database']

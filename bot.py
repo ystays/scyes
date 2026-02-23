@@ -10,7 +10,9 @@ from typing import AsyncIterator, Any
 import logging
 
 from config import app_config
-from observability.otel import configure_otel, tracer
+from observability.otel import configure_otel, get_tracer
+
+import logging
 
 intents = Intents.default()
 intents.message_content = True
@@ -22,7 +24,9 @@ bot = commands.Bot(command_prefix='>', intents=intents)
 
 configure_otel()
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
+tracer = get_tracer()
 
 @bot.before_invoke
 async def track_command(ctx: commands.Context) -> None:
