@@ -1,6 +1,6 @@
 # scyes
 
-A locally-hosted LLM Discord bot. 
+A self-hosted LLM Discord bot. 
 
 Featuring Ollama, OTel with Grafana, Google AI Studio and Gemini, Home Assistant, and Tavily Search.
 
