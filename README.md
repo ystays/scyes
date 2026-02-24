@@ -29,8 +29,9 @@ docker-compose exec ollama ollama pull <model_name>
 Run a local collector that receives OTLP HTTP traces and logs them to stdout:
 
 ```bash
-docker run --rm -p 4318:4318 \
+sudo docker run --rm -p 4318:4318 \
   -v $(pwd)/observability/otel-collector-config.yaml:/etc/otelcol/config.yaml \
+  --env-file .env \
   otel/opentelemetry-collector-contrib:latest \
   --config /etc/otelcol/config.yaml
 ```

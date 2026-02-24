@@ -11,8 +11,8 @@ processors:
 extensions:
   basicauth/otlp:
     client_auth:
-      username: '1301987'
-      password: <password>
+      username: ${env:GRAFANA_INSTANCE_ID}
+      password: ${env:GRAFANA_CLOUD_TOKEN}
 
 exporters:
   debug:
