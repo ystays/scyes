@@ -40,6 +40,7 @@ class Config:
             'port': db.getint('port'),
             'username': db.get('username'),
             'password': db.get('password'),
+            'db_name': db.get('db_name'),
             'pool_size': db.getint('pool_size', fallback=5)
         }
 

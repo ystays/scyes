@@ -2,7 +2,9 @@
 
 A self-hosted LLM Discord bot. 
 
-Featuring Ollama, OTel with Grafana, Google AI Studio and Gemini, Home Assistant, and Tavily Search.
+Featuring Ollama, OTel with Grafana, Google AI Studio and Gemini, Home Assistant, and Tavily Search. 
+
+Uses Docker/Docker Compose
 
 ## uv
 https://docs.astral.sh/uv/getting-started/installation/#installation-methods
@@ -50,6 +52,12 @@ With this enabled, each Discord bot command call creates a `discord.command` spa
 Check out this video/article on using the OTel Collector with Loki: https://grafana.com/docs/grafana-cloud/send-data/logs/collect-logs-with-otel/
 
 Collector config documentation: https://opentelemetry.io/docs/collector/configuration/
+
+OTel Python SDK docs: https://opentelemetry.io/docs/languages/python/distro/
+
+## Grafana
+https://ystay.grafana.net/explore
+
 
 ## Integrations and MCP
 Home Assistant: https://www.home-assistant.io/integrations/mcp_server/

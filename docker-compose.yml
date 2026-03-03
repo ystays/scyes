@@ -2,10 +2,11 @@ services:
   scyes-app:
     build: .
     container_name: scyes-app
-    environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
-    volumes:
-      - .:/app
+    # environment:
+      # - OLLAMA_BASE_URL=http://ollama:11434
+    restart: unless-stopped
+    depends_on:
+      - otel-collector
     # Uncomment to keep container running for debugging
     # stdin_open: true
     # tty: true
@@ -26,10 +27,16 @@ services:
   #   shm_size: 128mb
   #   restart: always
   #   healthcheck:
-  #     disable: false
+  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d
+  # ${DB_DATABASE_NAME}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
       
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector-contrib:0.127.0
+    env_file: .env  # inject GRAFANA_CLOUD_TOKEN, GRAFANA_INSTANCE_ID
     volumes:
       - ./observability/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
     ports:
@@ -40,6 +47,7 @@ services:
       - 4317:4317 # OTLP gRPC receiver
       - 4318:4318 # OTLP http receiver
       # - 55679:55679 # zpages extension
+    restart: unless-stopped
 
 # volumes:
   # ollama_data:
