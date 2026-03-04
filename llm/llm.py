@@ -30,5 +30,5 @@ def astream(input: str, msg_history: list[BaseMessage]) -> AsyncIterator[AIMessa
             config={"callbacks": [langfuse_handler]}
         )
     except Exception as e:
-       return Iterator(AIMessageChunk(content=f"Error streaming LLM response: {str(e)}")) 
+       return AsyncIterator(AIMessageChunk(content=f"Error streaming LLM response: {str(e)}")) 
     return response

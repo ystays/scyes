@@ -3,9 +3,9 @@ from typing import AsyncIterator, Any
 from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
 from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage, BaseMessage
-from llm.model import QWEN3_8B
 
 from integrations.tavily import tavily_search
+from datetime import datetime
 
 from observability.langfuse import langfuse
 from langfuse.langchain import CallbackHandler
@@ -17,12 +17,14 @@ from llm.google import google_model
 llm = google_model
 
 # Add tools here
-tools = [tavily_search]
+tools = [
+    tavily_search
+]
 
 scyes_agent = create_agent(llm, system_prompt=SystemMessage(content=[
     {
         "type": "text",
-        "text": "You are an AI assistant.",
+        "text": f"You're a chatbot. Please keep your responses concise, specifically to below 300 words. Today is {datetime.today().strftime('%Y-%m-%d')}.",
     }]), tools=tools)
 
 def invoke_agent(message: str) -> str:
@@ -37,7 +39,7 @@ def invoke_agent(message: str) -> str:
         content = f"Error invoking LLM: {str(e)}"
     return content
 
-def astream_agent(input: str, msg_history: list[BaseMessage]) -> AsyncIterator[dict[str, Any] | Any]:
+async def astream_agent(input: str, msg_history: list[BaseMessage]) -> AsyncIterator[dict[str, Any] | Any]:
     messages = [
         SystemMessage(
             content="You're a chatbot. Please keep your responses concise, specifically to below 300 words.",
@@ -45,13 +47,13 @@ def astream_agent(input: str, msg_history: list[BaseMessage]) -> AsyncIterator[d
         # *msg_history,  # remove history to reduce context size
         HumanMessage(content=input),
     ]
-    
+
     try:
-        response = scyes_agent.astream(
+        async for item in scyes_agent.astream(
             {"messages": messages},
             stream_mode="messages",
             config={"callbacks": [langfuse_handler]}
-        )
+        ):
+            yield item
     except Exception as e:
-       return Iterator(AIMessageChunk(content=f"Error streaming LLM response: {str(e)}")) 
-    return response
+        yield AIMessageChunk(content=f"Error streaming LLM response: {str(e)}"), {}

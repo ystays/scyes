@@ -93,7 +93,7 @@ async def llma(ctx: commands.Context, *, input: str):
     response: AsyncIterator[dict[str, Any] | Any] = astream_agent(input, msg_history[:-2])
     
     async for token, metadata in response:
-        if len(token.content_blocks) == 0 or token.content_blocks[-1]["type"] != "text":
+        if not isinstance(token, AIMessageChunk) or len(token.content_blocks) == 0 or token.content_blocks[-1]["type"] != "text":
             continue
 
         buffer += token.content_blocks[0]["text"]
@@ -105,8 +105,8 @@ async def llma(ctx: commands.Context, *, input: str):
         # Periodically update message (e.g., every 5 chunks to reduce API load)
         if len(buffer) % 5 == 0:
             await message.edit(content=buffer + "...")
-            
-    # 4. Final update
+
+    # Final update
     await message.edit(content=buffer)
 
 # bot.run(os.getenv("DISCORD_TOKEN"))
