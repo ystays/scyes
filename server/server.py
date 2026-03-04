@@ -1,20 +1,9 @@
 """FastAPI server with ngrok integration and Discord interactions."""
 
-import os
-import nacl.signing
-import nacl.exceptions
-from fastapi import FastAPI, Request, HTTPException
-from dotenv import load_dotenv
+from fastapi import FastAPI
 import uvicorn
 
-from utils import get_random_emoji
-from discord import InteractionType, InteractionResponseType
-from interactions import (
-    handle_challenge_interaction_command,
-    handle_interaction_component,
-)
 
-from config import app_config
 
 import logging
 logging.basicConfig(level=logging.INFO)

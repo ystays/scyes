@@ -1,19 +1,17 @@
 from typing import AsyncIterator, Any
+from datetime import datetime
 
 from langchain.agents import create_agent
-from langchain_ollama import ChatOllama
 from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage, BaseMessage
 
 from integrations.tavily import tavily_search
-from datetime import datetime
+from llm.google import google_model
 
-from observability.langfuse import langfuse
 from langfuse.langchain import CallbackHandler
 
 # Initialize Langfuse CallbackHandler for Langchain (tracing)
 langfuse_handler = CallbackHandler()
 
-from llm.google import google_model
 llm = google_model
 
 # Add tools here

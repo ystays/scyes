@@ -2,9 +2,8 @@ from typing import AsyncIterator
 
 from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage, BaseMessage
 from langchain_ollama import ChatOllama
-from llm.model import QWEN3_8B, GEMMA_3_4B
+from llm.model import GEMMA_3_4B
 
-from observability.langfuse import langfuse
 from langfuse.langchain import CallbackHandler
 
 # Initialize Langfuse CallbackHandler for Langchain (tracing)

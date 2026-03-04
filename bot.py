@@ -2,7 +2,6 @@ from discord.ext import commands
 from discord import Message, Intents
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from dotenv import load_dotenv
-import os
 from llm.agent import astream_agent
 from llm.llm import astream
 from langchain_core.messages import AIMessageChunk
@@ -12,7 +11,6 @@ import logging
 from config import app_config
 from observability.otel import configure_otel, get_tracer
 
-import logging
 
 intents = Intents.default()
 intents.message_content = True
