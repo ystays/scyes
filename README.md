@@ -20,7 +20,7 @@ uv run bot.py
 sudo docker build -t scyes .
 
 # Run Docker container (detach, with host network)
-sudo docker run -d --network host scyes:0.0.1
+sudo docker run -d --network host scyes
 
 # docker-compose
 docker-compose exec ollama ollama pull <model_name>
