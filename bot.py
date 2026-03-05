@@ -47,11 +47,12 @@ async def track_command(ctx: commands.Context) -> None:
 
 @bot.command()
 async def ping(ctx):
+    """Responds with pong"""
     await ctx.send('pong')
 
 @bot.command()
 async def add(ctx, left: int, right: int):
-    """Adds two numbers together."""
+    """Adds two numbers together"""
     await ctx.send(left + right)
 
 @bot.command()
