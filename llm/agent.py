@@ -7,6 +7,7 @@ from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage,
 from integrations.tavily import tavily_search
 from llm.google import google_model
 
+from observability.langfuse import langfuse
 from langfuse.langchain import CallbackHandler
 
 # Initialize Langfuse CallbackHandler for Langchain (tracing)

@@ -3,8 +3,6 @@
 from fastapi import FastAPI
 import uvicorn
 
-
-
 import logging
 logging.basicConfig(level=logging.INFO)
 

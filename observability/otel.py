@@ -20,6 +20,9 @@ def configure_otel() -> None:
     if not app_config.otel_enabled:
         return
 
+    if not isinstance(trace.get_tracer_provider(), trace.ProxyTracerProvider):
+        return  # already configured
+
     resource = Resource.create(
         {
             "service.name": app_config.otel_service_name,
