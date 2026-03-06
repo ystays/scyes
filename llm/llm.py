@@ -4,7 +4,7 @@ from langchain_core.messages import AIMessageChunk, SystemMessage, HumanMessage,
 from langchain_ollama import ChatOllama
 from llm.model import GEMMA_3_4B
 
-from observability.langfuse import langfuse
+from observability.langfuse import langfuse  # noqa F401
 from langfuse.langchain import CallbackHandler
 
 # Initialize Langfuse CallbackHandler for Langchain (tracing)

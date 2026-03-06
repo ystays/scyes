@@ -1,14 +1,14 @@
+import logging
+from typing import AsyncIterator, Any
+
 from discord.ext import commands
 from discord import Message, Intents
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, AIMessageChunk
 from dotenv import load_dotenv
-from llm.agent import astream_agent
-from llm.llm import astream
-from langchain_core.messages import AIMessageChunk
-from typing import AsyncIterator, Any
-import logging
 
 from config import app_config
+from llm.agent import astream_agent
+from llm.llm import astream
 from observability.otel import configure_otel, get_tracer
 
 
@@ -108,5 +108,4 @@ async def llma(ctx: commands.Context, *, input: str):
     # Final update
     await message.edit(content=buffer)
 
-# bot.run(os.getenv("DISCORD_TOKEN"))
 bot.run(app_config.discord_token)
