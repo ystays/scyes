@@ -21,5 +21,5 @@ vercel_ai_gateway_model = ChatXAI(
     base_url="https://ai-gateway.vercel.sh/v1",
     model=GROK_4_1_FAST,
     temperature=0.5,
-    api_key=app_config.vercel_ai_gateway_key,
+    api_key=app_config.vercel_ai_gateway_api_key,
 )
