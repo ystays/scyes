@@ -4,9 +4,11 @@ from fastapi import FastAPI
 import uvicorn
 
 import logging
+
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="My API Server")
+
 
 @app.get("/")
 async def root():

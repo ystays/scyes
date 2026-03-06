@@ -2,9 +2,9 @@ from langchain_tavily import TavilySearch
 from config import app_config
 
 tavily_search = TavilySearch(
-    max_results=2,
+    max_results=3,
     topic="general",
-    tavily_api_key=app_config.tavily_api_key
+    tavily_api_key=app_config.tavily_api_key,
     # include_answer=False,
     # include_raw_content=False,
     # include_images=False,

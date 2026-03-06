@@ -16,6 +16,7 @@ from opentelemetry.sdk._logs.export import SimpleLogRecordProcessor
 
 from config import app_config
 
+
 def configure_otel() -> None:
     if not app_config.otel_enabled:
         return
@@ -47,9 +48,7 @@ def configure_otel() -> None:
         endpoint=app_config.otel_collector_endpoint + "/v1/logs",
     )
 
-    logger_provider.add_log_record_processor(
-    SimpleLogRecordProcessor(log_exporter)
-    )
+    logger_provider.add_log_record_processor(SimpleLogRecordProcessor(log_exporter))
 
     set_logger_provider(logger_provider)
 
@@ -62,6 +61,7 @@ def configure_otel() -> None:
         "OTel enabled: %s",
         app_config.otel_collector_endpoint,
     )
+
 
 def get_tracer():
     return trace.get_tracer("scyes.discord")
