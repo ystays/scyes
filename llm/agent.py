@@ -12,7 +12,7 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 
 from integrations.tavily import tavily_search
 from integrations.wikipedia import wikipedia
-from integrations.mcp_tools import HA_MCP_CONFIG
+from integrations.mcp import HA_MCP_CONFIG
 
 # from llm.model_router import get_model
 from llm.google import google_model
