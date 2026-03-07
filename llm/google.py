@@ -13,7 +13,15 @@ google_model = ChatGoogleGenerativeAI(
     max_tokens=None,
     timeout=None,
     max_retries=0,
-    # other params...
+)
+
+gemini_2_5_flash_model = ChatGoogleGenerativeAI(
+    google_api_key=app_config.google_api_key,
+    model=GEMINI_2_5_FLASH,
+    temperature=1.0,
+    max_tokens=None,
+    timeout=None,
+    max_retries=0,
 )
 
 GROK_4_1_FAST = "grok-4.1-fast-non-reasoning"

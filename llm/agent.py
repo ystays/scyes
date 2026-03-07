@@ -18,15 +18,13 @@ from integrations.webpage_reader import read_webpage
 from integrations.python_repl import python_repl
 from integrations.google_calendar import list_calendar_events
 from integrations.mcp_tools import HA_MCP_CONFIG
-from llm.google import google_model
+from llm.model_router import get_model
 
 from observability.langfuse import langfuse  # noqa F401
 from langfuse.langchain import CallbackHandler
 
 # Initialize Langfuse CallbackHandler for Langchain (tracing)
 langfuse_handler = CallbackHandler()
-
-llm = google_model
 
 _system_prompt = SystemMessage(
     content=[
@@ -42,7 +40,7 @@ def invoke_agent(message: str) -> str:
     """Handle llm command by invoking the LLM."""
     try:
         agent = create_agent(
-            llm,
+            get_model(message),
             system_prompt=_system_prompt,
             tools=[
                 tavily_search,
@@ -64,7 +62,7 @@ async def astream_agent(
     input: str, msg_history: list[BaseMessage]
 ) -> AsyncIterator[dict[str, Any] | Any]:
     messages = [
-        system_prompt,
+        _system_prompt,
         # *msg_history,  # remove history to reduce context size
         HumanMessage(content=input),
     ]
@@ -79,7 +77,7 @@ async def astream_agent(
             read_webpage,
             list_calendar_events,
         ] + await mcp_client.get_tools()
-        agent = create_agent(llm, system_prompt=_system_prompt, tools=tools)
+        agent = create_agent(get_model(input), system_prompt=_system_prompt, tools=tools)
         async for item in agent.astream(
             {"messages": messages},
             stream_mode="messages",
