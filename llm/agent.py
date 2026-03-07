@@ -12,6 +12,11 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 
 from integrations.tavily import tavily_search
 from integrations.wikipedia import wikipedia
+from integrations.weather import weather
+from integrations.klipy import gif_search
+from integrations.webpage_reader import read_webpage
+from integrations.python_repl import python_repl
+from integrations.google_calendar import list_calendar_events
 from integrations.mcp_tools import HA_MCP_CONFIG
 from llm.google import google_model
 
@@ -36,7 +41,18 @@ _system_prompt = SystemMessage(
 def invoke_agent(message: str) -> str:
     """Handle llm command by invoking the LLM."""
     try:
-        agent = create_agent(llm, system_prompt=_system_prompt, tools=[tavily_search, wikipedia])
+        agent = create_agent(
+            llm,
+            system_prompt=_system_prompt,
+            tools=[
+                tavily_search,
+                wikipedia,
+                weather,
+                gif_search,
+                read_webpage,
+                list_calendar_events,
+            ],
+        )
         response = agent.invoke(message, config={"callbacks": [langfuse_handler]})
         content = response.content
     except Exception as e:
@@ -48,16 +64,21 @@ async def astream_agent(
     input: str, msg_history: list[BaseMessage]
 ) -> AsyncIterator[dict[str, Any] | Any]:
     messages = [
-        SystemMessage(
-            content="You're a chatbot. Please keep your responses concise, specifically to below 300 words.",
-        ),
+        system_prompt,
         # *msg_history,  # remove history to reduce context size
         HumanMessage(content=input),
     ]
 
     try:
         mcp_client = MultiServerMCPClient(HA_MCP_CONFIG)
-        tools = [tavily_search, wikipedia] + await mcp_client.get_tools()
+        tools = [
+            tavily_search,
+            wikipedia,
+            weather,
+            gif_search,
+            read_webpage,
+            list_calendar_events,
+        ] + await mcp_client.get_tools()
         agent = create_agent(llm, system_prompt=_system_prompt, tools=tools)
         async for item in agent.astream(
             {"messages": messages},

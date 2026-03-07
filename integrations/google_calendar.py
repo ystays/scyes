@@ -1,0 +1,54 @@
+from langchain.tools import tool
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
+import os
+import datetime
+
+SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+
+
+def _get_service():
+    creds = None
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open("token.json", "w") as f:
+            f.write(creds.to_json())
+    return build("calendar", "v3", credentials=creds)
+
+
+@tool
+def list_calendar_events(days: int = 7) -> str:
+    """List upcoming Google Calendar events for the next N days (default 7)."""
+    service = _get_service()
+    now = datetime.datetime.utcnow().isoformat() + "Z"
+    end = (datetime.datetime.utcnow() + datetime.timedelta(days=days)).isoformat() + "Z"
+
+    events_result = (
+        service.events()
+        .list(
+            calendarId="primary",
+            timeMin=now,
+            timeMax=end,
+            maxResults=10,
+            singleEvents=True,
+            orderBy="startTime",
+        )
+        .execute()
+    )
+    events = events_result.get("items", [])
+    if not events:
+        return "No upcoming events found."
+
+    lines = []
+    for e in events:
+        start = e["start"].get("dateTime", e["start"].get("date"))
+        lines.append(f"- {start}: {e['summary']}")
+    return "\n".join(lines)

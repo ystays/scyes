@@ -4,10 +4,11 @@ from config import app_config
 
 GEMINI_3_FLASH = "gemini-3-flash-preview"
 GEMINI_2_5_FLASH = "gemini-2.5-flash"
+GEMINI_3_1_FLASH_LITE = "gemini-3.1-flash-lite-preview"
 
 google_model = ChatGoogleGenerativeAI(
     google_api_key=app_config.google_api_key,
-    model=GEMINI_2_5_FLASH,
+    model=GEMINI_3_1_FLASH_LITE,
     temperature=1.0,  # Gemini 3.0+ defaults to 1.0
     max_tokens=None,
     timeout=None,

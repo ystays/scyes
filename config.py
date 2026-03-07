@@ -47,6 +47,11 @@ class Config:
             "VERCEL_AI_GATEWAY_API_KEY"
         )
 
+        self.openweather_api_key: str = self.config["openweather"].get(
+            "OPENWEATHER_API_KEY", ""
+        )
+        self.klipy_api_key: str = self.config["klipy"].get("KLIPY_API_KEY", "")
+
     def get_database_config(self):
         db = self.config["database"]
         return {
