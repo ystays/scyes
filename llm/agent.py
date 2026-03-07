@@ -12,12 +12,8 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 
 from integrations.tavily import tavily_search
 from integrations.wikipedia import wikipedia
-from integrations.weather import weather
-from integrations.klipy import gif_search
-from integrations.webpage_reader import read_webpage
-from integrations.python_repl import python_repl
-from integrations.google_calendar import list_calendar_events
 from integrations.mcp_tools import HA_MCP_CONFIG
+
 from llm.model_router import get_model
 
 from observability.langfuse import langfuse  # noqa F401
@@ -45,10 +41,6 @@ def invoke_agent(message: str) -> str:
             tools=[
                 tavily_search,
                 wikipedia,
-                weather,
-                gif_search,
-                read_webpage,
-                list_calendar_events,
             ],
         )
         response = agent.invoke(message, config={"callbacks": [langfuse_handler]})
@@ -72,10 +64,6 @@ async def astream_agent(
         tools = [
             tavily_search,
             wikipedia,
-            weather,
-            gif_search,
-            read_webpage,
-            list_calendar_events,
         ] + await mcp_client.get_tools()
         agent = create_agent(get_model(input), system_prompt=_system_prompt, tools=tools)
         async for item in agent.astream(
