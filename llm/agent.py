@@ -14,7 +14,8 @@ from integrations.tavily import tavily_search
 from integrations.wikipedia import wikipedia
 from integrations.mcp_tools import HA_MCP_CONFIG
 
-from llm.model_router import get_model
+# from llm.model_router import get_model
+from llm.google import google_model
 
 from observability.langfuse import langfuse  # noqa F401
 from langfuse.langchain import CallbackHandler
@@ -36,7 +37,7 @@ def invoke_agent(message: str) -> str:
     """Handle llm command by invoking the LLM."""
     try:
         agent = create_agent(
-            get_model(message),
+            google_model,
             system_prompt=_system_prompt,
             tools=[
                 tavily_search,
@@ -65,7 +66,11 @@ async def astream_agent(
             tavily_search,
             wikipedia,
         ] + await mcp_client.get_tools()
-        agent = create_agent(get_model(input), system_prompt=_system_prompt, tools=tools)
+        agent = create_agent(
+            google_model,
+            system_prompt=_system_prompt,
+            tools=tools
+        )
         async for item in agent.astream(
             {"messages": messages},
             stream_mode="messages",
