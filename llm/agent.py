@@ -12,6 +12,7 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 
 from integrations.tavily import tavily_search
 from integrations.wikipedia import wikipedia
+from integrations.giphy import giphy
 from integrations.mcp import HA_MCP_CONFIG
 
 # from llm.model_router import get_model
@@ -42,6 +43,7 @@ def invoke_agent(message: str) -> str:
             tools=[
                 tavily_search,
                 wikipedia,
+                giphy,
             ],
         )
         response = agent.invoke(message, config={"callbacks": [langfuse_handler]})
@@ -55,7 +57,6 @@ async def astream_agent(
     input: str, msg_history: list[BaseMessage]
 ) -> AsyncIterator[dict[str, Any] | Any]:
     messages = [
-        _system_prompt,
         # *msg_history,  # remove history to reduce context size
         HumanMessage(content=input),
     ]
@@ -65,6 +66,7 @@ async def astream_agent(
         tools = [
             tavily_search,
             wikipedia,
+            giphy,
         ] + await mcp_client.get_tools()
         agent = create_agent(
             google_model,
