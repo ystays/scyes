@@ -2,6 +2,7 @@ from langchain.tools import tool
 import requests
 from config import app_config
 
+
 @tool
 def giphy(query: str) -> str:
     """Search for a GIF matching the query. Returns a URL."""
@@ -20,4 +21,4 @@ def giphy(query: str) -> str:
 
     url = response.get("data", {})[0].get("url", "No GIF URL found")
 
-    return url 
+    return url

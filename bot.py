@@ -6,6 +6,8 @@ from discord import Message, Intents
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, AIMessageChunk
 from dotenv import load_dotenv
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 from config import app_config
 from llm.agent import astream_agent
 from llm.llm import astream
@@ -19,12 +21,21 @@ load_dotenv()
 
 bot = commands.Bot(command_prefix=">", intents=intents)
 
+scheduler = AsyncIOScheduler(timezone="UTC")
+
 
 configure_otel()
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 tracer = get_tracer()
+
+
+@bot.event
+async def on_ready():
+    if not scheduler.running:
+        scheduler.start()
+    logger.info("Bot is ready, scheduler started.")
 
 
 @bot.before_invoke
@@ -104,7 +115,7 @@ async def llma(ctx: commands.Context, *, input: str):
     buffer = ""
     msg_history.reverse()
     response: AsyncIterator[dict[str, Any] | Any] = astream_agent(
-        input, msg_history[:-2]
+        input, msg_history[:-2], bot, ctx.channel.id, scheduler
     )
 
     async for token, metadata in response:
