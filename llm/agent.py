@@ -13,6 +13,7 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from integrations.tavily import tavily_search
 from integrations.wikipedia import wikipedia
 from integrations.giphy import giphy
+from integrations.google_calendar import list_calendar_events, create_calendar_event
 from integrations.mcp import HA_MCP_CONFIG
 from integrations.msg_scheduler import create_msg_scheduler_tool
 
@@ -45,6 +46,8 @@ def invoke_agent(message: str) -> str:
                 tavily_search,
                 wikipedia,
                 giphy,
+                list_calendar_events,
+                create_calendar_event,
             ],
         )
         response = agent.invoke(message, config={"callbacks": [langfuse_handler]})
