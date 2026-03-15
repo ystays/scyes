@@ -1,6 +1,9 @@
 from typing import AsyncIterator, Any
 from datetime import datetime
 import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 from langchain.agents import create_agent
 from langchain_core.messages import (
@@ -80,6 +83,12 @@ async def astream_agent(
 
     try:
         mcp_client = MultiServerMCPClient(HA_MCP_CONFIG)
+        try:
+            mcp_tools = await mcp_client.get_tools()
+        except Exception as mcp_err:
+            logger.warning(f"MCP tools unavailable, skipping: {mcp_err}")
+            mcp_tools = []
+
         tools = (
             [
                 tavily_search,
@@ -87,7 +96,7 @@ async def astream_agent(
                 giphy,
             ]
             + [create_msg_scheduler_tool(bot, channel_id, scheduler)]
-            + await mcp_client.get_tools()
+            + mcp_tools
         )
         agent = create_agent(google_model, system_prompt=system_prompt, tools=tools)
         async for item in agent.astream(
