@@ -122,15 +122,18 @@ async def llma(ctx: commands.Context, *, input: str):
         if (
             not isinstance(token, AIMessageChunk)
             or len(token.content_blocks) == 0
-            or token.content_blocks[-1]["type"] != "text"
+            or token.content_blocks[0]["type"] != "text"
         ):
             continue
 
         buffer += token.content_blocks[0]["text"]
 
-        # If LLM output is too long, just truncate and exit for now
+        # If LLM output is too long, finalize current message and start a new one
         if len(buffer) > 2000:
-            break
+            await message.edit(content=buffer[:2000])
+            buffer = buffer[2000:]
+            message = await ctx.send(buffer + "...")
+            continue
 
         # Periodically update message (e.g., every 5 chunks to reduce API load)
         if len(buffer) % 5 == 0:
