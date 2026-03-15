@@ -1,5 +1,6 @@
 from typing import AsyncIterator, Any
 from datetime import datetime
+import traceback
 
 from langchain.agents import create_agent
 from langchain_core.messages import (
@@ -26,22 +27,21 @@ from langfuse.langchain import CallbackHandler
 # Initialize Langfuse CallbackHandler for Langchain (tracing)
 langfuse_handler = CallbackHandler()
 
-_system_prompt = SystemMessage(
-    content=[
-        {
-            "type": "text",
-            "text": f"You're a chatbot. Please keep your responses concise, specifically to below 300 words. Today is {datetime.today().strftime('%Y-%m-%d')}. The current time is {datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')} UTC. When scheduling messages, always convert times to ISO 8601 UTC format before calling msg_scheduler.",
-        }
-    ]
-)
-
 
 def invoke_agent(message: str) -> str:
     """Handle llm command by invoking the LLM."""
+    system_prompt = SystemMessage(
+        content=[
+            {
+                "type": "text",
+                "text": f"You're a chatbot. Please keep your responses concise, specifically to below 300 words. Today is {datetime.today().strftime('%Y-%m-%d')}. The current time is {datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')} UTC. When scheduling messages, always convert times to ISO 8601 UTC format before calling msg_scheduler.",
+            }
+        ]
+    )
     try:
         agent = create_agent(
             google_model,
-            system_prompt=_system_prompt,
+            system_prompt=system_prompt,
             tools=[
                 tavily_search,
                 wikipedia,
@@ -64,6 +64,15 @@ async def astream_agent(
     channel_id: int = 0,
     scheduler=None,
 ) -> AsyncIterator[dict[str, Any] | Any]:
+    system_prompt = SystemMessage(
+        content=[
+            {
+                "type": "text",
+                "text": f"You're a chatbot. Please keep your responses concise, specifically to below 300 words. Today is {datetime.today().strftime('%Y-%m-%d')}. The current time is {datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')} UTC. When scheduling messages, always convert times to ISO 8601 UTC format before calling msg_scheduler.",
+            }
+        ]
+    )
+
     messages = [
         # *msg_history,  # remove history to reduce context size
         HumanMessage(content=input),
@@ -80,7 +89,7 @@ async def astream_agent(
             + [create_msg_scheduler_tool(bot, channel_id, scheduler)]
             + await mcp_client.get_tools()
         )
-        agent = create_agent(google_model, system_prompt=_system_prompt, tools=tools)
+        agent = create_agent(google_model, system_prompt=system_prompt, tools=tools)
         async for item in agent.astream(
             {"messages": messages},
             stream_mode="messages",
@@ -88,7 +97,5 @@ async def astream_agent(
         ):
             yield item
     except Exception as e:
-        import traceback
-
         traceback.print_exc()
         yield AIMessageChunk(content=f"Error streaming LLM response: {str(e)}"), {}
