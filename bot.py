@@ -113,6 +113,7 @@ async def llma(ctx: commands.Context, *, input: str):
     ]
 
     buffer = ""
+    chunk_count = 0
     msg_history.reverse()
     response: AsyncIterator[dict[str, Any] | Any] = astream_agent(
         input, msg_history[:-2], bot, ctx.channel.id, scheduler
@@ -127,16 +128,18 @@ async def llma(ctx: commands.Context, *, input: str):
             continue
 
         buffer += token.content_blocks[0]["text"]
+        chunk_count += 1
 
         # If LLM output is too long, finalize current message and start a new one
         if len(buffer) > 2000:
             await message.edit(content=buffer[:2000])
             buffer = buffer[2000:]
+            chunk_count = 0
             message = await ctx.send(buffer + "...")
             continue
 
         # Periodically update message (e.g., every 5 chunks to reduce API load)
-        if len(buffer) % 5 == 0:
+        if chunk_count % 2 == 0:
             await message.edit(content=buffer + "...")
 
     # Final update
