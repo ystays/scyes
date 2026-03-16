@@ -1,0 +1,11 @@
+[
+  {
+    "id": "regression_note_001",
+    "note": "Add regression cases here when real bugs are found in production. Each case should reproduce the exact failure condition.",
+    "input": "placeholder - replace with real regression case",
+    "expected_tools": [],
+    "expected_tools_mode": "any",
+    "judge_criteria": "placeholder",
+    "tags": ["regression"]
+  }
+]

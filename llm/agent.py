@@ -3,8 +3,6 @@ from datetime import datetime
 import traceback
 import logging
 
-logger = logging.getLogger(__name__)
-
 from langchain.agents import create_agent
 from langchain_core.messages import (
     AIMessageChunk,
@@ -29,6 +27,8 @@ from langfuse.langchain import CallbackHandler
 
 # Initialize Langfuse CallbackHandler for Langchain (tracing)
 langfuse_handler = CallbackHandler()
+
+logger = logging.getLogger(__name__)
 
 
 def invoke_agent(message: str) -> str:

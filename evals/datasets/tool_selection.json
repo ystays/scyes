@@ -1,0 +1,79 @@
+[
+  {
+    "id": "tool_tavily_001",
+    "input": "What happened in the news today?",
+    "expected_tools": ["tavily_search"],
+    "expected_tools_mode": "any",
+    "tags": ["tool-use", "tavily"]
+  },
+  {
+    "id": "tool_tavily_002",
+    "input": "Search for the latest updates on artificial intelligence regulation.",
+    "expected_tools": ["tavily_search"],
+    "expected_tools_mode": "any",
+    "tags": ["tool-use", "tavily"]
+  },
+  {
+    "id": "tool_wikipedia_001",
+    "input": "Give me a summary of the French Revolution.",
+    "expected_tools": ["wikipedia"],
+    "expected_tools_mode": "any",
+    "tags": ["tool-use", "wikipedia"]
+  },
+  {
+    "id": "tool_wikipedia_002",
+    "input": "Who was Marie Curie and what did she discover?",
+    "expected_tools": ["wikipedia"],
+    "expected_tools_mode": "any",
+    "tags": ["tool-use", "wikipedia"]
+  },
+  {
+    "id": "tool_giphy_001",
+    "input": "Send me a funny cat gif.",
+    "expected_tools": ["giphy"],
+    "expected_tools_mode": "any",
+    "tags": ["tool-use", "giphy"]
+  },
+  {
+    "id": "tool_giphy_002",
+    "input": "Find a celebration gif for me.",
+    "expected_tools": ["giphy"],
+    "expected_tools_mode": "any",
+    "tags": ["tool-use", "giphy"]
+  },
+  {
+    "id": "tool_calendar_list_001",
+    "input": "What do I have on my calendar this week?",
+    "expected_tools": ["list_calendar_events"],
+    "expected_tools_mode": "any",
+    "tags": ["tool-use", "calendar", "list"]
+  },
+  {
+    "id": "tool_calendar_create_001",
+    "input": "Schedule a meeting with John tomorrow at 3pm.",
+    "expected_tools": ["create_calendar_event"],
+    "expected_tools_mode": "any",
+    "tags": ["tool-use", "calendar", "create"]
+  },
+  {
+    "id": "tool_no_tool_001",
+    "input": "What is 2 + 2?",
+    "expected_tools": [],
+    "expected_tools_mode": "exact",
+    "tags": ["no-tool", "math"]
+  },
+  {
+    "id": "tool_no_tool_002",
+    "input": "Say hello to me.",
+    "expected_tools": [],
+    "expected_tools_mode": "exact",
+    "tags": ["no-tool", "greeting"]
+  },
+  {
+    "id": "tool_multi_001",
+    "input": "Search the web for recent news about OpenAI and then find a relevant gif.",
+    "expected_tools": ["tavily_search", "giphy"],
+    "expected_tools_mode": "all",
+    "tags": ["tool-use", "multi-tool", "tavily", "giphy"]
+  }
+]
