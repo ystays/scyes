@@ -12,6 +12,7 @@ https://docs.astral.sh/uv/getting-started/installation/#installation-methods
 ```
 uv run api_server.py
 uv run bot.py
+uv run -m uvicorn server.server:app --host 0.0.0.0 --port 8000
 ```
 
 ## docker

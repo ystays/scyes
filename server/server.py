@@ -1,7 +1,12 @@
 """FastAPI server with ngrok integration and Discord interactions."""
 
+import asyncio
+from typing import Any
+
 from fastapi import FastAPI
+from pydantic import BaseModel
 import uvicorn
+from llm.agent import invoke_agent
 
 import logging
 
@@ -30,6 +35,16 @@ async def get_info():
         "version": "1.0.0",
         "description": "A simple FastAPI server exposed with ngrok",
     }
+
+
+class InvokeRequest(BaseModel):
+    input: str
+
+
+@app.post("/agent/invoke")
+async def invoke(request: InvokeRequest) -> Any:
+    output = await asyncio.to_thread(invoke_agent, request.input)
+    return {"output": output}
 
 
 if __name__ == "__main__":

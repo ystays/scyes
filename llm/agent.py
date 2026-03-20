@@ -53,8 +53,8 @@ def invoke_agent(message: str) -> str:
                 create_calendar_event,
             ],
         )
-        response = agent.invoke(message, config={"callbacks": [langfuse_handler]})
-        content = response.content
+        response = agent.invoke({"messages": [HumanMessage(content=message)]}, config={"callbacks": [langfuse_handler]})
+        content = response["messages"][-1].content
     except Exception as e:
         content = f"Error invoking LLM: {str(e)}"
     return content
