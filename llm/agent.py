@@ -77,7 +77,7 @@ async def astream_agent(
     )
 
     messages = [
-        # *msg_history,  # remove history to reduce context size
+        *msg_history,
         HumanMessage(content=input),
     ]
 
@@ -94,6 +94,7 @@ async def astream_agent(
                 tavily_search,
                 wikipedia,
                 giphy,
+                list_calendar_events,
             ]
             + [create_msg_scheduler_tool(bot, channel_id, scheduler)]
             + mcp_tools
