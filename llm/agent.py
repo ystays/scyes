@@ -77,7 +77,7 @@ async def astream_agent(
     )
 
     messages = [
-        # *msg_history,  # remove history to reduce context size
+        *msg_history,  # remove history to reduce context size
         HumanMessage(content=input),
     ]
 
