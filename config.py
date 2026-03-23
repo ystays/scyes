@@ -53,6 +53,10 @@ class Config:
         self.klipy_api_key: str = self.config["klipy"].get("KLIPY_API_KEY", "")
         self.giphy_api_key: str = self.config["giphy"].get("GIPHY_API_KEY", "")
 
+        self.google_service_account_key_file: str = self.config["google"].get(
+            "SERVICE_ACCOUNT_KEY_FILE", "scyes-google-svc-key.json"
+        )
+
     def get_database_config(self):
         db = self.config["database"]
         return {

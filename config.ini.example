@@ -35,8 +35,22 @@ HOME_ASSISTANT_BASE_URL = localhost
 
 [google]
 GOOGLE_API_KEY = 
+SERVICE_ACCOUNT_KEY_FILE =
 
 [otel]
-ENABLED = false
+ENABLED = true
 SERVICE_NAME = scyes
-OTLP_HTTP_ENDPOINT = http://localhost:4318
+GRAFANA_CLOUD_TOKEN =
+OTEL_EXPORTER_OTLP_ENDPOINT="https://otlp-gateway-prod-ap-southeast-1.grafana.net/otlp"
+
+[vercel]
+VERCEL_AI_GATEWAY_API_KEY =
+
+[openweather]
+OPENWEATHER_API_KEY =
+
+[klipy]
+KLIPY_API_KEY =
+
+[giphy]
+GIPHY_API_KEY =
