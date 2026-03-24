@@ -3,7 +3,6 @@ from datetime import datetime
 import traceback
 import logging
 
-logger = logging.getLogger(__name__)
 
 from langchain.agents import create_agent
 from langchain_core.messages import (
@@ -30,6 +29,7 @@ from langfuse.langchain import CallbackHandler
 # Initialize Langfuse CallbackHandler for Langchain (tracing)
 langfuse_handler = CallbackHandler()
 
+logger = logging.getLogger(__name__)
 
 def invoke_agent(message: str) -> str:
     """Handle llm command by invoking the LLM."""
@@ -53,8 +53,8 @@ def invoke_agent(message: str) -> str:
                 create_calendar_event,
             ],
         )
-        response = agent.invoke(message, config={"callbacks": [langfuse_handler]})
-        content = response.content
+        response = agent.invoke({"messages": [HumanMessage(content=message)]}, config={"callbacks": [langfuse_handler]})
+        content = response["messages"][-1].content
     except Exception as e:
         content = f"Error invoking LLM: {str(e)}"
     return content
