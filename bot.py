@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from config import app_config
-from llm.agent import astream_agent
+from llm.langchain_agent import astream_agent
 from llm.llm import astream
 from observability.otel import configure_otel, get_tracer
 

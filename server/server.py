@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-from llm.agent import invoke_agent
+from llm.langchain_agent import invoke_agent
 
 import logging
 
