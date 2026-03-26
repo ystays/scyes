@@ -31,8 +31,8 @@ langfuse_handler = CallbackHandler()
 
 logger = logging.getLogger(__name__)
 
-def invoke_agent(message: str) -> str:
-    """Handle llm command by invoking the LLM."""
+async def ainvoke_agent(message: str) -> str:
+    """Handle llm command by invoking the LLM asynchronously."""
     system_prompt = SystemMessage(
         content=[
             {
@@ -53,7 +53,7 @@ def invoke_agent(message: str) -> str:
                 create_calendar_event,
             ],
         )
-        response = agent.invoke({"messages": [HumanMessage(content=message)]}, config={"callbacks": [langfuse_handler]})
+        response = await agent.ainvoke({"messages": [HumanMessage(content=message)]}, config={"callbacks": [langfuse_handler]})
         content = response["messages"][-1].content
     except Exception as e:
         content = f"Error invoking LLM: {str(e)}"

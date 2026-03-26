@@ -1,12 +1,12 @@
 """FastAPI server"""
 
-import asyncio
 from typing import Any
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-from llm.langchain_agent import invoke_agent
+from llm.langchain_agent import ainvoke_agent
+from llm.adk_agent import ainvoke_adk_agent
 
 import logging
 
@@ -30,7 +30,13 @@ class InvokeRequest(BaseModel):
 
 @app.post("/agent/invoke")
 async def invoke(request: InvokeRequest) -> Any:
-    output = await asyncio.to_thread(invoke_agent, request.input)
+    output = await ainvoke_agent(request.input)
+    return {"output": output}
+
+
+@app.post("/adk-agent/invoke")
+async def invoke_adk(request: InvokeRequest) -> Any:
+    output = await ainvoke_adk_agent(request.input)
     return {"output": output}
 
 
