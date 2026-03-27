@@ -1,7 +1,7 @@
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import AsyncIterator
 
 from google.adk.agents import Agent
@@ -24,21 +24,15 @@ _session_service = InMemorySessionService()
 
 
 # --- Tools ---
-def get_current_datetime() -> dict:
-    """Returns the current date and time in UTC."""
-    now = datetime.now(timezone.utc)
-    return {
-        "date": now.strftime("%Y-%m-%d"),
-        "time_utc": now.strftime("%Y-%m-%dT%H:%M:%S"),
-    }
-
 def search_web(query: str) -> str:
     """Search the web for current information using Tavily."""
     return tavily_search.run(query)
 
+
 def search_wikipedia(query: str) -> str:
     """Search Wikipedia for general knowledge about a topic."""
     return wikipedia.run(query)
+
 
 def search_giphy(query: str) -> str:
     """Search Giphy for a relevant GIF URL."""
@@ -51,13 +45,13 @@ _agent = Agent(
     description="A helpful Discord chatbot assistant.",
     instruction=(
         "You're a helpful chatbot. Keep responses concise (under 300 words). "
+        f"Today is {datetime.today().strftime('%Y-%m-%d')}. The current time is {datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')} UTC. "
         "Use tools when you need current information or to answer factual questions."
     ),
     tools=[
-        get_current_datetime,
         search_web,
         search_wikipedia,
-        search_giphy
+        search_giphy,
     ],
 )
 
@@ -70,11 +64,14 @@ async def _run_events(message: str):
         app_name=APP_NAME, user_id="discord_user", session_id=session_id
     )
     user_message = Content(role="user", parts=[Part(text=message)])
+    result = None
     async for event in _runner.run_async(
         user_id="discord_user", session_id=session_id, new_message=user_message
     ):
         if event.is_final_response() and event.content and event.content.parts:
-            yield event.content.parts[0].text
+            result = event.content.parts[0].text
+    if result is not None:
+        yield result
 
 
 async def ainvoke_adk_agent(message: str) -> str:
