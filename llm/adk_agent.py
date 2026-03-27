@@ -4,7 +4,6 @@ import uuid
 from datetime import datetime, timezone
 from typing import AsyncIterator
 
-import wikipedia as wiki_api
 from google.adk.agents import Agent
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
@@ -62,58 +61,30 @@ _agent = Agent(
     ],
 )
 
-# --- Runner helpers ---
-def _make_runner() -> Runner:
-    return Runner(
-        agent=_agent,
-        app_name=APP_NAME,
-        session_service=_session_service,
+_runner = Runner(agent=_agent, app_name=APP_NAME, session_service=_session_service)
+
+
+async def _run_events(message: str):
+    session_id = str(uuid.uuid4())
+    await _session_service.create_session(
+        app_name=APP_NAME, user_id="discord_user", session_id=session_id
     )
+    user_message = Content(role="user", parts=[Part(text=message)])
+    async for event in _runner.run_async(
+        user_id="discord_user", session_id=session_id, new_message=user_message
+    ):
+        if event.is_final_response() and event.content and event.content.parts:
+            yield event.content.parts[0].text
 
 
 async def ainvoke_adk_agent(message: str) -> str:
     """Invoke the ADK agent asynchronously and return the final response."""
-    return await _invoke_async(message)
-
-
-async def _invoke_async(message: str) -> str:
-    user_id = "discord_user"
-    session_id = str(uuid.uuid4())
-
-    await _session_service.create_session(
-        app_name=APP_NAME, user_id=user_id, session_id=session_id
-    )
-
-    runner = _make_runner()
-    user_message = Content(role="user", parts=[Part(text=message)])
-
-    async for event in runner.run_async(
-        user_id=user_id, session_id=session_id, new_message=user_message
-    ):
-        if event.is_final_response() and event.content and event.content.parts:
-            return event.content.parts[0].text
-
+    async for text in _run_events(message):
+        return text
     return "No response generated."
 
 
 async def astream_adk_agent(message: str) -> AsyncIterator[str]:
     """Stream the ADK agent's final response text."""
-    user_id = "discord_user"
-    session_id = str(uuid.uuid4())
-
-    await _session_service.create_session(
-        app_name=APP_NAME,
-        user_id=user_id,
-        session_id=session_id,
-    )
-
-    runner = _make_runner()
-    user_message = Content(role="user", parts=[Part(text=message)])
-
-    async for event in runner.run_async(
-        user_id=user_id,
-        session_id=session_id,
-        new_message=user_message,
-    ):
-        if event.is_final_response() and event.content and event.content.parts:
-            yield event.content.parts[0].text
+    async for text in _run_events(message):
+        yield text
