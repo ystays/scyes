@@ -27,8 +27,8 @@ gemini_2_5_flash_model = ChatGoogleGenerativeAI(
 GROK_4_1_FAST = "grok-4.1-fast-non-reasoning"
 
 vercel_ai_gateway_model = ChatXAI(
-    base_url="https://ai-gateway.vercel.sh/v1",
     model=GROK_4_1_FAST,
     temperature=0.5,
     api_key=app_config.vercel_ai_gateway_api_key,
+    model_kwargs={"base_url": "https://ai-gateway.vercel.sh/v1"},
 )
