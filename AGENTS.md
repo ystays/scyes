@@ -70,6 +70,55 @@ docker run --rm -p 4318:4318 \
 
 Then set `ENABLED = true` under `[otel]` in `config.ini`.
 
+## Async / Threading Pitfalls
+
+### Do not wrap async functions with `asyncio.to_thread`
+
+If a function internally calls `asyncio.run()`, do **not** invoke it via `asyncio.to_thread()`.
+`asyncio.to_thread` copies the current context into the thread, but `asyncio.run()` creates a
+fresh event loop and a new context. Any `ContextVar` tokens (e.g. OpenTelemetry spans) set inside
+`asyncio.run()` will fail to detach, producing:
+
+```
+ValueError: <Token ...> was created in a different Context
+```
+
+**Wrong:**
+```python
+# invoke_adk_agent calls asyncio.run() internally
+output = await asyncio.to_thread(invoke_adk_agent, message)
+```
+
+**Right:** use the async version directly from the async endpoint:
+```python
+output = await ainvoke_adk_agent(message)
+```
+
+Only use `asyncio.to_thread` for blocking synchronous code that has no async counterpart
+(e.g. a blocking database driver, CPU-bound work). If the library exposes an async API, use it directly.
+
+## Error Handling
+
+### Use `logger.exception` instead of `traceback.print_exc`
+
+Prefer `logger.exception(...)` over `traceback.print_exc()` in exception handlers. `logger.exception` logs the message and full traceback through the standard logging system (respecting log level, handlers, and formatters), whereas `traceback.print_exc()` writes directly to stderr and bypasses logging entirely.
+
+**Wrong:**
+```python
+except Exception as e:
+    traceback.print_exc()
+    yield AIMessageChunk(content=f"Error: {str(e)}")
+```
+
+**Right:**
+```python
+except Exception as e:
+    logger.exception("Descriptive error message")
+    yield AIMessageChunk(content=f"Error: {str(e)}")
+```
+
+When using `logger.exception`, there is no need to import `traceback`.
+
 ## Key Conventions
 
 - All LLM calls go through `llm/agent.py` (agent) or `llm/llm.py` (simple streaming) — do not call Ollama or Google SDKs directly elsewhere.
