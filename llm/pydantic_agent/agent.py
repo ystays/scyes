@@ -65,18 +65,6 @@ class PydanticDeepAgent:
     ) -> "PydanticDeepAgent":
         return cls(messages=messages, fs_factory=fs_factory)
 
-    async def ainvoke(self, message: str, user_id: str = "default") -> str:
-        history = await self._message_store.load(user_id)
-        deps = AgentDeps(fs=self._fs_factory(user_id), user_id=user_id)
-        result = await agent.run(message, deps=deps, message_history=history)
-
-        await self._message_store.save(
-            user_id, 
-            history + result.new_messages()
-        )
-
-        return result.output
-
     async def astream(
         self, message: str, user_id: str = "default"
     ) -> AsyncIterator[str]:

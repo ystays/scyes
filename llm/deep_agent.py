@@ -89,24 +89,6 @@ class DeepAgent:
             "callbacks": [self._langfuse_handler],
         }
 
-    async def ainvoke(self, message: str, user_id: str = "server") -> str:
-        try:
-            async with MultiServerMCPClient(HA_MCP_CONFIG) as mcp_client:
-                try:
-                    mcp_tools = await mcp_client.get_tools()
-                except Exception as mcp_err:
-                    logger.warning(f"MCP tools unavailable, skipping: {mcp_err}")
-                    mcp_tools = []
-
-            response = await self._invoke_agent.ainvoke(
-                {"messages": [HumanMessage(content=message)]},
-                config=self._config(user_id),
-            )
-            return response["messages"][-1].content
-        except Exception as e:
-            logger.exception("Error invoking deep agent")
-            return f"Error invoking deep agent: {str(e)}"
-
     async def astream(
         self,
         message: str,
