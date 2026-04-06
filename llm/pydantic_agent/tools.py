@@ -3,30 +3,25 @@ import os
 
 from pydantic_ai import RunContext
 
-from llm.pydantic_agent.agent import agent
 from llm.pydantic_agent.deps import AgentDeps
 
 
-@agent.tool
 async def ls(ctx: RunContext[AgentDeps], path: str) -> list[str]:
     """List files in the virtual filesystem at the given path."""
     return await ctx.deps.fs.ls(path)
 
 
-@agent.tool
 async def read_file(ctx: RunContext[AgentDeps], path: str) -> str:
     """Read a file from the virtual filesystem."""
     return await ctx.deps.fs.read(path)
 
 
-@agent.tool
 async def write_file(ctx: RunContext[AgentDeps], path: str, content: str) -> str:
     """Write content to a file in the virtual filesystem."""
     await ctx.deps.fs.write(path, content)
     return f"Wrote {len(content)} chars to {path}."
 
 
-@agent.tool
 async def edit_file(
     ctx: RunContext[AgentDeps], path: str, old_str: str, new_str: str
 ) -> str:
@@ -35,7 +30,6 @@ async def edit_file(
     return f"Edited {path}."
 
 
-@agent.tool
 async def bash(ctx: RunContext[AgentDeps], command: str, timeout: int = 30) -> str:
     """Run a shell command and return its output (stdout + stderr combined)."""
     timeout = min(timeout, 120)
@@ -62,3 +56,6 @@ async def bash(ctx: RunContext[AgentDeps], command: str, timeout: int = 30) -> s
     if exit_code != 0:
         output = f"[exit code {exit_code}]\n{output}"
     return output or "(no output)"
+
+
+ALL_TOOLS = [ls, read_file, write_file, edit_file, bash]

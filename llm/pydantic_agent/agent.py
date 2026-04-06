@@ -8,9 +8,11 @@ and passing them to PydanticDeepAgent().
 
 from __future__ import annotations
 
-from typing import AsyncIterator, Callable
+from typing import AsyncIterator, Callable, Sequence
 
 from pydantic_ai import Agent
+from pydantic_ai.capabilities import AbstractCapability, Hooks
+from pydantic_ai.capabilities.hooks import BeforeToolExecuteHookFunc
 
 from llm.pydantic_agent.deps import (
     AgentDeps,
@@ -19,6 +21,7 @@ from llm.pydantic_agent.deps import (
     InMemoryMessageBackend,
     MessageBackend,
 )
+from llm.pydantic_agent.tools import ALL_TOOLS
 
 _SYSTEM_PROMPT = """\
 You are a capable deep agent. You can:
@@ -27,12 +30,6 @@ You are a capable deep agent. You can:
 
 Always start by writing a plan to TODOS.md before acting on a multi-step task.
 """
-
-agent: Agent[AgentDeps, str] = Agent(
-    "google-gla:gemini-2.5-flash",
-    deps_type=AgentDeps,
-    system_prompt=_SYSTEM_PROMPT,
-)
 
 
 def _make_fs_factory() -> Callable[[str], FilesystemBackend]:
@@ -51,30 +48,44 @@ class PydanticDeepAgent:
         self,
         *,
         messages: MessageBackend | None = None,
-        fs_factory: Callable[[str], FilesystemBackend] | None = None,
+        filesystem: Callable[[str], FilesystemBackend] | None = None,
+        capabilities: Sequence[AbstractCapability] | None = None,
+        before_tool_call: BeforeToolExecuteHookFunc | None = None,
     ) -> None:
         self._message_store = messages or InMemoryMessageBackend()
-        self._fs_factory = fs_factory or _make_fs_factory()
+        self._filesystem = filesystem or _make_fs_factory()
 
-    @classmethod
-    async def create(
-        cls,
-        *,
-        messages: MessageBackend | None = None,
-        fs_factory: Callable[[str], FilesystemBackend] | None = None,
-    ) -> "PydanticDeepAgent":
-        return cls(messages=messages, fs_factory=fs_factory)
+        all_capabilities: list[AbstractCapability] = list(capabilities or [])
+        if before_tool_call is not None:
+            hooks = Hooks()
+            hooks.on.before_tool_execute(before_tool_call)
+            all_capabilities.append(hooks)
+
+        self._agent: Agent[AgentDeps, str] = Agent(
+            "google-gla:gemini-2.5-flash",
+            deps_type=AgentDeps,
+            system_prompt=_SYSTEM_PROMPT,
+            capabilities=all_capabilities or None,
+        )
+        for tool_fn in ALL_TOOLS:
+            self._agent.tool(tool_fn)
+
+    async def ainvoke(self, message: str, user_id: str = "default") -> str:
+        history = await self._message_store.load(user_id)
+        deps = AgentDeps(fs=self._filesystem(user_id), user_id=user_id)
+
+        result = await self._agent.run(message, deps=deps, message_history=history)
+        await self._message_store.save(user_id, history + result.new_messages())
+
+        return result.output
 
     async def astream(
         self, message: str, user_id: str = "default"
     ) -> AsyncIterator[str]:
         history = await self._message_store.load(user_id)
-        deps = AgentDeps(
-            fs=self._fs_factory(user_id),
-            user_id=user_id
-        )
+        deps = AgentDeps(fs=self._filesystem(user_id), user_id=user_id)
 
-        async with agent.run_stream(
+        async with self._agent.run_stream(
             message, deps=deps, message_history=history
         ) as result:
             async for chunk in result.stream_text(delta=True):
@@ -84,3 +95,18 @@ class PydanticDeepAgent:
 
     async def close(self) -> None:
         pass
+
+
+def create_pydantic_agent(
+    *,
+    messages: MessageBackend | None = None,
+    filesystem: Callable[[str], FilesystemBackend] | None = None,
+    capabilities: Sequence[AbstractCapability] | None = None,
+    before_tool_call: BeforeToolExecuteHookFunc | None = None,
+) -> PydanticDeepAgent:
+    return PydanticDeepAgent(
+        messages=messages,
+        filesystem=filesystem,
+        capabilities=capabilities,
+        before_tool_call=before_tool_call,
+    )
