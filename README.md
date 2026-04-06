@@ -1,10 +1,10 @@
 # scyes
 
-A self-hosted LLM Discord bot. 
+A self-hosted LLM Discord bot, deployed with Docker and Docker Compose.
 
 Featuring Ollama, OTel with Grafana, Google AI Studio and Gemini, Home Assistant, and Tavily Search. 
 
-Uses Docker/Docker Compose
+Contains experimental agents using Pydantic AI, Langchain, and Google ADK.
 
 ## uv
 https://docs.astral.sh/uv/getting-started/installation/#installation-methods
