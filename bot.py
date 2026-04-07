@@ -11,6 +11,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from config import app_config
 from llm.langchain_agent import astream_agent
 from llm.llm import astream
+from llm.pydantic_agent import PydanticDeepAgent
 from observability.otel import configure_otel, get_tracer
 
 
@@ -22,6 +23,8 @@ load_dotenv()
 bot = commands.Bot(command_prefix=">", intents=intents)
 
 scheduler = AsyncIOScheduler(timezone="UTC")
+
+pydantic_agent = PydanticDeepAgent()
 
 
 configure_otel()
@@ -143,6 +146,30 @@ async def llma(ctx: commands.Context, *, input: str):
             await message.edit(content=buffer + "...")
 
     # Final update
+    await message.edit(content=buffer)
+
+
+@bot.command()
+async def pyd(ctx: commands.Context, *, input: str):
+    """Chat with the pydantic deep agent (persistent memory per user)"""
+    message: Message = await ctx.send("thinking...")
+
+    buffer = ""
+    chunk_count = 0
+    async for chunk in pydantic_agent.astream(input, user_id=str(ctx.author.id)):
+        buffer += chunk
+        chunk_count += 1
+
+        if len(buffer) > 2000:
+            await message.edit(content=buffer[:2000])
+            buffer = buffer[2000:]
+            chunk_count = 0
+            message = await ctx.send(buffer + "...")
+            continue
+
+        if chunk_count % 5 == 0:
+            await message.edit(content=buffer + "...")
+
     await message.edit(content=buffer)
 
 
