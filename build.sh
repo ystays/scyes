@@ -28,5 +28,16 @@ if sudo docker ps --format '{{.Image}}' | grep -q 'scyes'; then
 fi
 
 # Build and run scyes
-sudo docker build -t scyes .
+build_log=$(mktemp)
+if ! sudo docker build -t scyes . 2>&1 | tee "$build_log"; then
+  if grep -qi "no space left on device\|out of disk space\|no space left" "$build_log"; then
+    echo "Error: Docker build failed — disk is full. Free up space and try again."
+    df -h /
+  else
+    echo "Error: Docker build failed."
+  fi
+  rm -f "$build_log"
+  exit 1
+fi
+rm -f "$build_log"
 sudo docker run -d --network host scyes

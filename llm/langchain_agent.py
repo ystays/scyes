@@ -1,6 +1,5 @@
 from typing import AsyncIterator, Any
 from datetime import datetime
-import traceback
 import logging
 
 
@@ -21,7 +20,7 @@ from integrations.mcp import HA_MCP_CONFIG
 from integrations.msg_scheduler import create_msg_scheduler_tool
 
 # from llm.model_router import get_model
-from llm.google import google_model
+from llm.google import langchain_fallback_models, is_unavailable
 
 from observability.langfuse import langfuse  # noqa F401
 from langfuse.langchain import CallbackHandler
@@ -98,13 +97,25 @@ async def astream_agent(
             + [create_msg_scheduler_tool(bot, channel_id, scheduler)]
             + mcp_tools
         )
-        agent = create_agent(google_model, system_prompt=system_prompt, tools=tools)
-        async for item in agent.astream(
-            {"messages": messages},
-            stream_mode="messages",
-            config={"callbacks": [langfuse_handler]},
-        ):
-            yield item
+
+        last_err = None
+        for model in langchain_fallback_models:
+            try:
+                agent = create_agent(model, system_prompt=system_prompt, tools=tools)
+                async for item in agent.astream(
+                    {"messages": messages},
+                    stream_mode="messages",
+                    config={"callbacks": [langfuse_handler]},
+                ):
+                    yield item
+                return
+            except Exception as e:
+                if is_unavailable(e):
+                    logger.warning(f"Model {model.model} unavailable, trying fallback: {e}")
+                    last_err = e
+                    continue
+                raise
+
+        yield AIMessageChunk(content=f"Error streaming LLM response: {str(last_err)}"), {}
     except Exception as e:
-        traceback.print_exc()
         yield AIMessageChunk(content=f"Error streaming LLM response: {str(e)}"), {}

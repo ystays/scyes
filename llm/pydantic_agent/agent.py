@@ -13,7 +13,10 @@ from typing import AsyncIterator, Callable, Sequence
 from pydantic_ai import Agent
 from pydantic_ai.capabilities import AbstractCapability, Hooks
 from pydantic_ai.capabilities.hooks import BeforeToolExecuteHookFunc
+from pydantic_ai.models.google import GoogleModel
+from pydantic_ai.providers.google import GoogleProvider
 
+from config import app_config
 from llm.pydantic_agent.deps import (
     AgentDeps,
     FilesystemBackend,
@@ -61,8 +64,12 @@ class PydanticDeepAgent:
             hooks.on.before_tool_execute(before_tool_call)
             all_capabilities.append(hooks)
 
+        model = GoogleModel(
+            GEMINI_3_1_FLASH_LITE,
+            provider=GoogleProvider(api_key=app_config.google_api_key),
+        )
         self._agent: Agent[AgentDeps, str] = Agent(
-            "google-gla:gemini-2.5-flash",
+            model,
             deps_type=AgentDeps,
             system_prompt=_SYSTEM_PROMPT,
             capabilities=all_capabilities or None,
