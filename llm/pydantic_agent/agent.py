@@ -8,15 +8,15 @@ and passing them to PydanticDeepAgent().
 
 from __future__ import annotations
 
-from typing import AsyncIterator, Callable, Sequence
+from typing import Any, Callable, Sequence
 
 from pydantic_ai import Agent
 from pydantic_ai.capabilities import AbstractCapability, Hooks
 from pydantic_ai.capabilities.hooks import BeforeToolExecuteHookFunc
+from pydantic_ai.mcp import MCPServer
 from pydantic_ai.models.google import GoogleModel
-from pydantic_ai.providers.google import GoogleProvider
 
-from config import app_config
+from llm.google import GEMINI_3_1_FLASH_LITE
 from llm.pydantic_agent.deps import (
     AgentDeps,
     FilesystemBackend,
@@ -24,7 +24,7 @@ from llm.pydantic_agent.deps import (
     InMemoryMessageBackend,
     MessageBackend,
 )
-from llm.pydantic_agent.tools import ALL_TOOLS
+from llm.pydantic_agent.tools import bash, edit_file, ls, read_file, write_file
 
 _SYSTEM_PROMPT = """\
 You are a capable deep agent. You can:
@@ -46,74 +46,34 @@ def _make_fs_factory() -> Callable[[str], FilesystemBackend]:
     return factory
 
 
-class PydanticDeepAgent:
-    def __init__(
-        self,
-        *,
-        messages: MessageBackend | None = None,
-        filesystem: Callable[[str], FilesystemBackend] | None = None,
-        capabilities: Sequence[AbstractCapability] | None = None,
-        before_tool_call: BeforeToolExecuteHookFunc | None = None,
-    ) -> None:
-        self._message_store = messages or InMemoryMessageBackend()
-        self._filesystem = filesystem or _make_fs_factory()
-
-        all_capabilities: list[AbstractCapability] = list(capabilities or [])
-        if before_tool_call is not None:
-            hooks = Hooks()
-            hooks.on.before_tool_execute(before_tool_call)
-            all_capabilities.append(hooks)
-
-        model = GoogleModel(
-            GEMINI_3_1_FLASH_LITE,
-            provider=GoogleProvider(api_key=app_config.google_api_key),
-        )
-        self._agent: Agent[AgentDeps, str] = Agent(
-            model,
-            deps_type=AgentDeps,
-            system_prompt=_SYSTEM_PROMPT,
-            capabilities=all_capabilities or None,
-        )
-        for tool_fn in ALL_TOOLS:
-            self._agent.tool(tool_fn)
-
-    async def ainvoke(self, message: str, user_id: str = "default") -> str:
-        history = await self._message_store.load(user_id)
-        deps = AgentDeps(fs=self._filesystem(user_id), user_id=user_id)
-
-        result = await self._agent.run(message, deps=deps, message_history=history)
-        await self._message_store.save(user_id, history + result.new_messages())
-
-        return result.output
-
-    async def astream(
-        self, message: str, user_id: str = "default"
-    ) -> AsyncIterator[str]:
-        history = await self._message_store.load(user_id)
-        deps = AgentDeps(fs=self._filesystem(user_id), user_id=user_id)
-
-        async with self._agent.run_stream(
-            message, deps=deps, message_history=history
-        ) as result:
-            async for chunk in result.stream_text(delta=True):
-                yield chunk
-            new_messages = result.new_messages()
-        await self._message_store.save(user_id, history + new_messages)
-
-    async def close(self) -> None:
-        pass
-
-
-def create_pydantic_agent(
+def create_pyd_agent(
+    model: GoogleModel,
     *,
-    messages: MessageBackend | None = None,
+    tools: Sequence[Any] | None = None,
+    instructions: str = _SYSTEM_PROMPT,
     filesystem: Callable[[str], FilesystemBackend] | None = None,
     capabilities: Sequence[AbstractCapability] | None = None,
+    mcp_servers: Sequence[MCPServer] | None = None,
     before_tool_call: BeforeToolExecuteHookFunc | None = None,
-) -> PydanticDeepAgent:
-    return PydanticDeepAgent(
-        messages=messages,
-        filesystem=filesystem,
-        capabilities=capabilities,
-        before_tool_call=before_tool_call,
+) -> Agent:
+    fs_factory = filesystem or _make_fs_factory()
+
+    # Core filesystem + shell tools, plus any caller-supplied extras
+    core_tools: list[Any] = [ls, read_file, bash, edit_file, write_file, *(tools or [])]
+
+    # Build capabilities and hooks
+    all_capabilities: list[AbstractCapability] = list(capabilities or [])
+
+    return Agent(
+        model=model,
+        instructions=instructions,
+        tools=core_tools,
+        mcp_servers=list(mcp_servers) if mcp_servers else None,
+        capabilities=all_capabilities,
+        deps_type=AgentDeps,
     )
+
+
+# Top-level instance for the pydantic-ai CLI:
+#   uv run python -m pydantic_ai -a "llm.pydantic_agent.agent:agent"
+agent = create_pyd_agent(GoogleModel(GEMINI_3_1_FLASH_LITE))

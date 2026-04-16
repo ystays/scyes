@@ -1,3 +1,3 @@
-from llm.pydantic_agent.agent import PydanticDeepAgent, create_pydantic_agent
+from llm.pydantic_agent.agent import agent, create_pyd_agent
 
-__all__ = ["PydanticDeepAgent", "create_pydantic_agent"]
+__all__ = ["agent", "create_pyd_agent"]
