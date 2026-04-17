@@ -17,11 +17,10 @@ from pydantic_ai.mcp import MCPServer
 from pydantic_ai.models.google import GoogleModel
 
 from llm.google import GEMINI_3_1_FLASH_LITE
+from llm.pydantic_agent.backends import InMemoryBackend
 from llm.pydantic_agent.deps import (
     AgentDeps,
     FilesystemBackend,
-    InMemoryBackend,
-    InMemoryMessageBackend,
     MessageBackend,
 )
 from llm.pydantic_agent.tools import bash, edit_file, ls, read_file, write_file

@@ -3,10 +3,13 @@ import os
 
 from pydantic_ai import RunContext
 
-from llm.pydantic_agent.deps import AgentDeps, InMemoryBackend
+from llm.pydantic_agent.backends import LocalDirBackend
+from llm.pydantic_agent.deps import AgentDeps
+
+_AGENT_DIR = os.path.join(os.path.dirname(__file__), "agent_dir")
 
 # Fallback used when no deps are injected (e.g. pydantic-ai CLI passes deps=None).
-_default_deps = AgentDeps(fs=InMemoryBackend(), user_id="cli")
+_default_deps = AgentDeps(fs=LocalDirBackend(_AGENT_DIR), user_id="cli")
 
 
 def _deps(ctx: RunContext[AgentDeps | None]) -> AgentDeps:
