@@ -1,28 +1,24 @@
 """
 Pydantic AI deep agent with todos and a virtual filesystem.
 
-Storage is pluggable via FilesystemBackend and MessageBackend protocols —
-swap in postgres (or any other backend) by implementing those two protocols
-and passing them to PydanticDeepAgent().
+Storage is pluggable via FilesystemBackend — swap in postgres (or any other
+backend) by implementing that protocol and passing it to pyd_agent.
 """
 
 from __future__ import annotations
 
-from typing import Any, Callable, Sequence
+from typing import Any, AsyncIterator, Callable, Sequence
 
 from pydantic_ai import Agent
-from pydantic_ai.capabilities import AbstractCapability, Hooks
+from pydantic_ai.capabilities import AbstractCapability
 from pydantic_ai.capabilities.hooks import BeforeToolExecuteHookFunc
 from pydantic_ai.mcp import MCPServer
 from pydantic_ai.models.google import GoogleModel
 
 from llm.google import GEMINI_3_1_FLASH_LITE
 from llm.pydantic_agent.backends import InMemoryBackend
-from llm.pydantic_agent.deps import (
-    AgentDeps,
-    FilesystemBackend,
-    MessageBackend,
-)
+from llm.pydantic_agent.backends.session_manager import SessionManager
+from llm.pydantic_agent.deps import AgentDeps, FilesystemBackend
 from llm.pydantic_agent.tools import bash, edit_file, ls, read_file, write_file
 
 _SYSTEM_PROMPT = """\

@@ -11,7 +11,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from config import app_config
 from llm.langchain_agent import astream_agent
 from llm.llm import astream
-from llm.pydantic_agent import PydanticDeepAgent
+from llm.pydantic_agent import agent as pyd_agent
+from llm.pydantic_agent.backends import LocalDirBackend
+from llm.pydantic_agent.deps import AgentDeps
 from observability.otel import configure_otel, get_tracer
 
 
@@ -23,8 +25,6 @@ load_dotenv()
 bot = commands.Bot(command_prefix=">", intents=intents)
 
 scheduler = AsyncIOScheduler(timezone="UTC")
-
-pydantic_agent = PydanticDeepAgent()
 
 
 configure_otel()
@@ -154,21 +154,26 @@ async def pyd(ctx: commands.Context, *, input: str):
     """Chat with the pydantic deep agent (persistent memory per user)"""
     message: Message = await ctx.send("thinking...")
 
+    user_id = str(ctx.author.id)
+    fs = LocalDirBackend(f".agent_data/{user_id}")
+    deps = AgentDeps(fs=fs, user_id=user_id)
+
     buffer = ""
     chunk_count = 0
-    async for chunk in pydantic_agent.astream(input, user_id=str(ctx.author.id)):
-        buffer += chunk
-        chunk_count += 1
+    async with pyd_agent.run_stream(input, deps=deps) as result:
+        async for chunk in result.stream_text(delta=True):
+            buffer += chunk
+            chunk_count += 1
 
-        if len(buffer) > 2000:
-            await message.edit(content=buffer[:2000])
-            buffer = buffer[2000:]
-            chunk_count = 0
-            message = await ctx.send(buffer + "...")
-            continue
+            if len(buffer) > 2000:
+                await message.edit(content=buffer[:2000])
+                buffer = buffer[2000:]
+                chunk_count = 0
+                message = await ctx.send(buffer + "...")
+                continue
 
-        if chunk_count % 5 == 0:
-            await message.edit(content=buffer + "...")
+            if chunk_count % 5 == 0:
+                await message.edit(content=buffer + "...")
 
     await message.edit(content=buffer)
 
