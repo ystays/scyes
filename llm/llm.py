@@ -7,7 +7,7 @@ from langchain_core.messages import (
     BaseMessage,
 )
 from langchain_ollama import ChatOllama
-from llm.model import GEMMA_3_4B
+from llm.model import GEMMA_4_26B
 
 from observability.langfuse import langfuse  # noqa F401
 from langfuse.langchain import CallbackHandler
@@ -16,7 +16,7 @@ from langfuse.langchain import CallbackHandler
 langfuse_handler = CallbackHandler()
 
 llm = ChatOllama(
-    model=GEMMA_3_4B,
+    model=GEMMA_4_26B,
     temperature=0,
 )
 
