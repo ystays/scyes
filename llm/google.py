@@ -8,7 +8,7 @@ def is_unavailable(e: Exception) -> bool:
 
 GEMINI_3_FLASH = "gemini-3-flash-preview"
 GEMINI_2_5_FLASH = "gemini-2.5-flash"
-GEMINI_3_1_FLASH_LITE = "gemini-3.1-flash-lite-preview"
+GEMINI_3_1_FLASH_LITE = "gemini-3.1-flash-lite"
 GEMMA_4_31B = "gemma-4-31b-it"
 
 google_model = ChatGoogleGenerativeAI(
