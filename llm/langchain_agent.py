@@ -1,8 +1,8 @@
-from typing import AsyncIterator, Any
+from typing import AsyncIterator, Any, Callable
 from datetime import datetime
 import logging
 
-
+import discord
 from langchain.agents import create_agent
 from langchain_core.messages import (
     AIMessageChunk,
@@ -18,6 +18,7 @@ from integrations.giphy import giphy
 from integrations.google_calendar import list_calendar_events, create_calendar_event
 from integrations.mcp import HA_MCP_CONFIG
 from integrations.msg_scheduler import create_msg_scheduler_tool
+from integrations.buttons import create_buttons_tool
 
 # from llm.model_router import get_model
 from llm.google import langchain_fallback_models, is_unavailable
@@ -29,6 +30,44 @@ from langfuse.langchain import CallbackHandler
 langfuse_handler = CallbackHandler()
 
 logger = logging.getLogger(__name__)
+
+
+async def stream_agent_to_message(message, send_fn, input, msg_history, bot, channel_id, scheduler):
+    buffer = ""
+    chunk_count = 0
+    async for token, metadata in astream_agent(input, msg_history, bot, channel_id, scheduler):
+        if (
+            not isinstance(token, AIMessageChunk)
+            or len(token.content_blocks) == 0
+            or token.content_blocks[0]["type"] != "text"
+        ):
+            continue
+
+        buffer += token.content_blocks[0]["text"]
+        chunk_count += 1
+
+        if len(buffer) > 2000:
+            await message.edit(content=buffer[:2000])
+            buffer = buffer[2000:]
+            chunk_count = 0
+            message = await send_fn(buffer + "...")
+            continue
+
+        if chunk_count % 2 == 0:
+            await message.edit(content=buffer + "...")
+
+    await message.edit(content=buffer)
+
+
+def make_button_callback(bot, channel_id: int, scheduler) -> Callable:
+    async def on_click(interaction: discord.Interaction, value: str):
+        await interaction.response.defer()
+        channel = bot.get_channel(channel_id) or await bot.fetch_channel(channel_id)
+        message = await channel.send("thinking...")
+        await stream_agent_to_message(message, channel.send, value, [], bot, channel_id, scheduler)
+
+    return on_click
+
 
 async def ainvoke_agent(message: str) -> str:
     """Handle llm command by invoking the LLM asynchronously."""
@@ -95,6 +134,7 @@ async def astream_agent(
                 giphy,
             ]
             + [create_msg_scheduler_tool(bot, channel_id, scheduler)]
+            + [create_buttons_tool(bot, channel_id, make_button_callback(bot, channel_id, scheduler))]
             + mcp_tools
         )
 

@@ -1,15 +1,13 @@
 import logging
-from typing import AsyncIterator, Any
-
 from discord.ext import commands
 from discord import Message, Intents
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, AIMessageChunk
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from dotenv import load_dotenv
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from config import app_config
-from llm.langchain_agent import astream_agent
+from llm.langchain_agent import astream_agent, stream_agent_to_message
 from llm.llm import astream
 from llm.pydantic_agent import agent as pyd_agent
 from llm.pydantic_agent.backends import LocalDirBackend
@@ -115,38 +113,8 @@ async def llma(ctx: commands.Context, *, input: str):
         async for msg in message.channel.history(limit=8)
     ]
 
-    buffer = ""
-    chunk_count = 0
     msg_history.reverse()
-    response: AsyncIterator[dict[str, Any] | Any] = astream_agent(
-        input, msg_history[:-2], bot, ctx.channel.id, scheduler
-    )
-
-    async for token, metadata in response:
-        if (
-            not isinstance(token, AIMessageChunk)
-            or len(token.content_blocks) == 0
-            or token.content_blocks[0]["type"] != "text"
-        ):
-            continue
-
-        buffer += token.content_blocks[0]["text"]
-        chunk_count += 1
-
-        # If LLM output is too long, finalize current message and start a new one
-        if len(buffer) > 2000:
-            await message.edit(content=buffer[:2000])
-            buffer = buffer[2000:]
-            chunk_count = 0
-            message = await ctx.send(buffer + "...")
-            continue
-
-        # Periodically update message (e.g., every 5 chunks to reduce API load)
-        if chunk_count % 2 == 0:
-            await message.edit(content=buffer + "...")
-
-    # Final update
-    await message.edit(content=buffer)
+    await stream_agent_to_message(message, ctx.send, input, msg_history[:-2], bot, ctx.channel.id, scheduler)
 
 
 @bot.command()
