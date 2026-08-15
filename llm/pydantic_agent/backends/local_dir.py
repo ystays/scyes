@@ -9,8 +9,8 @@ class LocalDirBackend:
         self._root.mkdir(parents=True, exist_ok=True)
 
     def _resolve(self, path: str) -> Path:
-        # Strip leading slash so paths are always relative to root
-        resolved = (self._root / path.lstrip("/")).resolve()
+        raw = Path(path).expanduser()
+        resolved = raw.resolve() if raw.is_absolute() else (self._root / raw).resolve()
         if not resolved.is_relative_to(self._root):
             raise PermissionError(f"Path escapes agent dir: {path}")
         return resolved
