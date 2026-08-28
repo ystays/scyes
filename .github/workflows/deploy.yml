@@ -1,0 +1,42 @@
+name: Build Docker image and deploy
+# Runner needs passwordless sudo
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    if: false
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start otel-collector if not running
+        run: |
+          if ! sudo docker ps --format '{{.Image}}' | grep -q 'opentelemetry-collector-contrib'; then
+            echo "Starting otel-collector..."
+            sudo docker run -d -p 4318:4318 \
+              -v "$(pwd)/observability/otel-collector-config.yaml:/etc/otelcol/config.yaml" \
+              --env-file .env \
+              otel/opentelemetry-collector-contrib:latest \
+              --config /etc/otelcol/config.yaml
+          else
+            echo "otel-collector already running, skipping."
+          fi
+
+      - name: Check Ollama
+        run: curl -s http://localhost:11434 > /dev/null || echo "Warning: Ollama does not appear to be running."
+
+      - name: Stop existing scyes container
+        run: |
+          if sudo docker ps --format '{{.Image}}' | grep -q 'scyes'; then
+            sudo docker stop $(sudo docker ps -q --filter ancestor=scyes)
+          fi
+
+      - name: Build and run scyes
+        run: |
+          sudo docker build -t scyes .
+          sudo docker run -d --network host scyes
