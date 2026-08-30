@@ -7,26 +7,26 @@ backend) by implementing that protocol and passing it to pyd_agent.
 
 from __future__ import annotations
 
-from typing import Any, AsyncIterator, Callable, Sequence
+import os
+from typing import Any, Callable, Sequence
 
 from pydantic_ai import Agent
 from pydantic_ai.capabilities import AbstractCapability
 from pydantic_ai.capabilities.hooks import BeforeToolExecuteHookFunc
 from pydantic_ai.mcp import MCPServer
+from pydantic_ai.models import Model
 from pydantic_ai.models.google import GoogleModel
 
 from llm.google import GEMINI_3_1_FLASH_LITE
 from llm.pydantic_agent.backends import InMemoryBackend
-from llm.pydantic_agent.backends.session_manager import SessionManager
 from llm.pydantic_agent.deps import AgentDeps, FilesystemBackend
+from llm.pydantic_agent.openai_codex import DEFAULT_CODEX_MODEL, ChatGPTCodexModel
 from llm.pydantic_agent.tools import bash, edit_file, ls, read_file, write_file
 
 _SYSTEM_PROMPT = """\
 You are a capable deep agent. You can:
 - Plan tasks by writing and updating TODOS.md with write_file / read_file / edit_file
 - Read, write, list, and edit other files in a persistent virtual filesystem
-
-Always start by writing a plan to TODOS.md before acting on a multi-step task.
 """
 
 
@@ -42,7 +42,7 @@ def _make_fs_factory() -> Callable[[str], FilesystemBackend]:
 
 
 def create_pyd_agent(
-    model: GoogleModel,
+    model: Model,
     *,
     tools: Sequence[Any] | None = None,
     instructions: str = _SYSTEM_PROMPT,
@@ -51,7 +51,8 @@ def create_pyd_agent(
     mcp_servers: Sequence[MCPServer] | None = None,
     before_tool_call: BeforeToolExecuteHookFunc | None = None,
 ) -> Agent:
-    fs_factory = filesystem or _make_fs_factory()
+    # Keep the filesystem factory parameter for callers that construct deps externally.
+    _ = filesystem or _make_fs_factory()
 
     # Core filesystem + shell tools, plus any caller-supplied extras
     core_tools: list[Any] = [ls, read_file, bash, edit_file, write_file, *(tools or [])]
@@ -69,6 +70,13 @@ def create_pyd_agent(
     )
 
 
-# Top-level instance for the pydantic-ai CLI:
+def _default_model() -> Model:
+    if os.environ.get("PYD_AGENT_PROVIDER") in {"chatgpt-plus", "openai-codex"}:
+        return ChatGPTCodexModel(os.environ.get("PYD_AGENT_MODEL", DEFAULT_CODEX_MODEL))
+    return GoogleModel(os.environ.get("PYD_AGENT_MODEL", GEMINI_3_1_FLASH_LITE))
+
+
+# Top-level instance for the pydantic-ai CLI and Discord bot:
 #   uv run python -m pydantic_ai -a "llm.pydantic_agent.agent:agent"
-agent = create_pyd_agent(GoogleModel(GEMINI_3_1_FLASH_LITE))
+# Set PYD_AGENT_PROVIDER=chatgpt-plus to use ChatGPT Plus/Pro Codex subscription auth.
+agent = create_pyd_agent(_default_model())
