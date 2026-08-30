@@ -16,8 +16,11 @@ from pydantic_ai.capabilities.hooks import BeforeToolExecuteHookFunc
 from pydantic_ai.mcp import MCPServer
 from pydantic_ai.models import Model
 from pydantic_ai.models.google import GoogleModel
+from pydantic_ai.providers.google import GoogleProvider
 
-from llm.google import GEMINI_3_1_FLASH_LITE
+from config import app_config
+
+from llm.google import GEMINI_3_1_FLASH_LITE, google_model
 from llm.pydantic_agent.backends import InMemoryBackend
 from llm.pydantic_agent.deps import AgentDeps, FilesystemBackend
 from llm.pydantic_agent.openai_codex import DEFAULT_CODEX_MODEL, ChatGPTCodexModel
@@ -72,8 +75,8 @@ def create_pyd_agent(
 
 def _default_model() -> Model:
     if os.environ.get("PYD_AGENT_PROVIDER") in {"chatgpt-plus", "openai-codex"}:
-        return ChatGPTCodexModel(os.environ.get("PYD_AGENT_MODEL", DEFAULT_CODEX_MODEL))
-    return GoogleModel(os.environ.get("PYD_AGENT_MODEL", GEMINI_3_1_FLASH_LITE))
+        return ChatGPTCodexModel(DEFAULT_CODEX_MODEL)
+    return GoogleModel(GEMINI_3_1_FLASH_LITE, provider=GoogleProvider(api_key=app_config.google_api_key))
 
 
 # Top-level instance for the pydantic-ai CLI and Discord bot:
