@@ -11,7 +11,7 @@ fi
 if ! sudo docker ps --format '{{.Image}}' | grep -q 'opentelemetry-collector-contrib'; then
   echo "Starting otel-collector..."
   sudo docker run -d -p 4318:4318 \
-    -v "$(pwd)/observability/otel-collector-config.yaml:/etc/otelcol/config.yaml" \
+    -v "$(pwd)/src/scyes/observability/otel-collector-config.yaml:/etc/otelcol/config.yaml" \
     --env-file .env \
     otel/opentelemetry-collector-contrib:latest \
     --config /etc/otelcol/config.yaml

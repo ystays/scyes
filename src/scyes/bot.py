@@ -1,0 +1,149 @@
+import logging
+from discord.ext import commands
+from discord import Message, Intents
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+from dotenv import load_dotenv
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+from scyes.config import app_config
+from scyes.llm.langchain_agent import astream_agent, stream_agent_to_message
+from scyes.llm.llm import astream
+from scyes.llm.pydantic_agent import agent as pyd_agent
+from scyes.llm.pydantic_agent.backends import LocalDirBackend
+from scyes.llm.pydantic_agent.deps import AgentDeps
+from scyes.observability.otel import configure_otel, get_tracer
+
+
+intents = Intents.default()
+intents.message_content = True
+
+load_dotenv()
+
+bot = commands.Bot(command_prefix=">", intents=intents)
+
+scheduler = AsyncIOScheduler(timezone="UTC")
+
+
+configure_otel()
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+tracer = get_tracer()
+
+
+@bot.event
+async def on_ready():
+    if not scheduler.running:
+        scheduler.start()
+    logger.info("Bot is ready, scheduler started.")
+
+
+@bot.before_invoke
+async def track_command(ctx: commands.Context) -> None:
+    command_name = ctx.command.qualified_name if ctx.command else "unknown"
+    with tracer.start_as_current_span("discord.command") as span:
+        span.set_attribute("discord.command", command_name)
+        span.set_attribute("discord.user_id", str(ctx.author.id))
+        span.set_attribute("discord.channel_id", str(ctx.channel.id))
+        span.set_attribute("discord.guild_id", str(ctx.guild.id) if ctx.guild else "dm")
+        logger.info(
+            "Discord command called",
+            extra={
+                "command": command_name,
+                "user_id": str(ctx.author.id),
+                "channel_id": str(ctx.channel.id),
+                "guild_id": str(ctx.guild.id) if ctx.guild else "dm",
+            },
+        )
+
+
+@bot.command()
+async def ping(ctx):
+    """Responds with pong"""
+    await ctx.send("pong")
+
+
+@bot.command()
+async def add(ctx, left: int, right: int):
+    """Adds two numbers together"""
+    await ctx.send(left + right)
+
+
+@bot.command()
+async def llm(ctx: commands.Context, *, input: str):
+    """Chat with 4B model (faster responses)"""
+    message: Message = await ctx.send("thinking...")
+
+    msg_history: list[BaseMessage] = [
+        AIMessage(content=msg.content)
+        if msg.author.bot
+        else HumanMessage(content=msg.author.name + ": " + msg.content)
+        async for msg in message.channel.history(limit=8)
+    ]
+
+    buffer = ""
+    msg_history.reverse()
+    response: AsyncIterator[AIMessageChunk] = astream(input, msg_history[:-2])
+
+    async for chunk in response:
+        buffer += chunk.content
+
+        # If LLM output is too long, just truncate and exit for now
+        if len(buffer) > 2000:
+            break
+
+        # Periodically update message (e.g., every 5 chunks to reduce API load)
+        if len(buffer) % 5 == 0:
+            await message.edit(content=buffer + "...")
+
+    # 4. Final update
+    await message.edit(content=buffer)
+
+
+@bot.command()
+async def llma(ctx: commands.Context, *, input: str):
+    """Chat with agent (tool calls, slower responses)"""
+    message: Message = await ctx.send("thinking...")
+
+    msg_history: list[BaseMessage] = [
+        AIMessage(content=msg.content)
+        if msg.author.bot
+        else HumanMessage(content=msg.author.name + ": " + msg.content)
+        async for msg in message.channel.history(limit=8)
+    ]
+
+    msg_history.reverse()
+    await stream_agent_to_message(message, ctx.send, input, msg_history[:-2], bot, ctx.channel.id, scheduler)
+
+
+@bot.command()
+async def pyd(ctx: commands.Context, *, input: str):
+    """Chat with the pydantic deep agent (persistent memory per user)"""
+    message: Message = await ctx.send("thinking...")
+
+    user_id = str(ctx.author.id)
+    fs = LocalDirBackend(f".agent_data/{user_id}")
+    deps = AgentDeps(fs=fs, user_id=user_id)
+
+    buffer = ""
+    chunk_count = 0
+    async with pyd_agent.run_stream(input, deps=deps) as result:
+        async for chunk in result.stream_text(delta=True):
+            buffer += chunk
+            chunk_count += 1
+
+            if len(buffer) > 2000:
+                await message.edit(content=buffer[:2000])
+                buffer = buffer[2000:]
+                chunk_count = 0
+                message = await ctx.send(buffer + "...")
+                continue
+
+            if chunk_count % 5 == 0:
+                await message.edit(content=buffer + "...")
+
+    await message.edit(content=buffer)
+
+
+bot.run(app_config.discord_token)

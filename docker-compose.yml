@@ -38,7 +38,7 @@ services:
     image: otel/opentelemetry-collector-contrib:0.127.0
     env_file: .env  # inject GRAFANA_CLOUD_TOKEN, GRAFANA_INSTANCE_ID
     volumes:
-      - ./observability/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+      - ./src/scyes/observability/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
     ports:
       # - 1888:1888 # pprof extension
       # - 8888:8888 # Prometheus metrics exposed by the Collector

@@ -10,8 +10,8 @@ Contains experimental agents using Pydantic AI, Langchain, and Google ADK.
 https://docs.astral.sh/uv/getting-started/installation/#installation-methods
 
 ```
-uv run bot.py
-uv run -m uvicorn server.server:app --host 0.0.0.0 --port 8000
+uv run python -m scyes.bot
+uv run -m uvicorn scyes.server.server:app --host 0.0.0.0 --port 8000
 ```
 
 ## docker
@@ -32,7 +32,7 @@ Run a local collector that receives OTLP HTTP traces and logs them to stdout:
 
 ```bash
 sudo docker run --rm -p 4318:4318 \
-  -v $(pwd)/observability/otel-collector-config.yaml:/etc/otelcol/config.yaml \
+  -v $(pwd)/src/scyes/observability/otel-collector-config.yaml:/etc/otelcol/config.yaml \
   --env-file .env \
   otel/opentelemetry-collector-contrib:latest \
   --config /etc/otelcol/config.yaml

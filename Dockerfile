@@ -45,4 +45,4 @@ ENTRYPOINT []
 USER nonroot
 
 # Run the bot application
-CMD ["uv", "run", "bot.py"]
+CMD ["uv", "run", "python", "-m", "scyes.bot"]

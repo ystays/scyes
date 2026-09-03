@@ -25,10 +25,10 @@ This file provides guidance for AI agents working in this repository.
 uv sync
 
 # Run the Discord bot
-uv run bot.py
+uv run python -m scyes.bot
 
 # Run the FastAPI server
-uv run -m uvicorn server.server:app --host 0.0.0.0 --port 8000
+uv run -m uvicorn scyes.server.server:app --host 0.0.0.0 --port 8000
 ```
 
 **Docker:**
@@ -52,8 +52,8 @@ Google Calendar requires `credentials.json` (OAuth2 client) in the repo root; `t
 
 ## Adding a New Tool / Integration
 
-1. Create `integrations/<name>.py` and define a LangChain `Tool` or `@tool`-decorated function.
-2. Import and add the tool to the tools list in `llm/agent.py` (inside `invoke_agent` / `astream_agent`).
+1. Create `src/scyes/integrations/<name>.py` and define a LangChain `Tool` or `@tool`-decorated function.
+2. Import and add the tool to the tools list in `src/scyes/llm/agent.py` (inside `invoke_agent` / `astream_agent`).
 3. Add any new config values to `config.ini.example` and read them via `config.py`.
 4. Add eval cases to `evals/datasets/tool_selection.json` to cover expected tool selection.
 
@@ -63,7 +63,7 @@ Every Discord command is traced via OTel. To enable locally:
 
 ```bash
 docker run --rm -p 4318:4318 \
-  -v $(pwd)/observability/otel-collector-config.yaml:/etc/otelcol/config.yaml \
+  -v $(pwd)/src/scyes/observability/otel-collector-config.yaml:/etc/otelcol/config.yaml \
   --env-file .env \
   otel/opentelemetry-collector-contrib:latest
 ```

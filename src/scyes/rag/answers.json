@@ -1,0 +1,977 @@
+[
+  {
+    "id": 1,
+    "number": 1,
+    "title": "Two Sum",
+    "hints": [
+      "Brute force is O(n^2) — try every pair. Can you trade space for time?",
+      "For each number x, you need to find target - x. What data structure gives O(1) lookup?",
+      "Walk the array once with a hash map: key = value seen, value = its index."
+    ],
+    "approach": "One-pass hash map. For each nums[i], check if (target - nums[i]) is already in the map; if yes, return both indices. Otherwise store nums[i] -> i.",
+    "solution": "def twoSum(nums, target):\n    seen = {}\n    for i, x in enumerate(nums):\n        if target - x in seen:\n            return [seen[target - x], i]\n        seen[x] = i",
+    "complexity": {"time": "O(n)", "space": "O(n)"}
+  },
+  {
+    "id": 2,
+    "number": 121,
+    "title": "Best Time to Buy and Sell Stock",
+    "hints": [
+      "You only do one buy and one sell. The buy must come before the sell.",
+      "Track the cheapest price seen so far as you scan left to right.",
+      "At each day, the best profit ending today is price[today] - min_so_far."
+    ],
+    "approach": "Single pass tracking min price seen and max profit. Update min if today is lower; otherwise update max profit with today - min.",
+    "solution": "def maxProfit(prices):\n    min_price = float('inf')\n    best = 0\n    for p in prices:\n        if p < min_price:\n            min_price = p\n        else:\n            best = max(best, p - min_price)\n    return best",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 3,
+    "number": 217,
+    "title": "Contains Duplicate",
+    "hints": [
+      "Sorting makes duplicates adjacent — but costs O(n log n).",
+      "A set gives O(1) membership checks.",
+      "Compare len(set(nums)) to len(nums) for a one-liner."
+    ],
+    "approach": "Insert into a set as you scan; return True the moment you see a repeat. Or compare set size to list size.",
+    "solution": "def containsDuplicate(nums):\n    seen = set()\n    for x in nums:\n        if x in seen:\n            return True\n        seen.add(x)\n    return False",
+    "complexity": {"time": "O(n)", "space": "O(n)"}
+  },
+  {
+    "id": 4,
+    "number": 238,
+    "title": "Product of Array Except Self",
+    "hints": [
+      "No division allowed. Think about prefix and suffix products.",
+      "answer[i] = (product of everything left of i) * (product of everything right of i).",
+      "Do it in two passes: left products into the output, then multiply by running right product."
+    ],
+    "approach": "Two passes. First pass fills answer[i] with prefix product. Second pass walks right-to-left, multiplying answer[i] by the running suffix product.",
+    "solution": "def productExceptSelf(nums):\n    n = len(nums)\n    out = [1] * n\n    left = 1\n    for i in range(n):\n        out[i] = left\n        left *= nums[i]\n    right = 1\n    for i in range(n - 1, -1, -1):\n        out[i] *= right\n        right *= nums[i]\n    return out",
+    "complexity": {"time": "O(n)", "space": "O(1) extra (output not counted)"}
+  },
+  {
+    "id": 5,
+    "number": 53,
+    "title": "Maximum Subarray",
+    "hints": [
+      "Classic Kadane's algorithm.",
+      "At each index, either extend the previous subarray or start fresh from here.",
+      "cur = max(nums[i], cur + nums[i]); best = max(best, cur)."
+    ],
+    "approach": "Kadane: maintain the best sum ending at i. Reset to nums[i] when running sum goes negative.",
+    "solution": "def maxSubArray(nums):\n    cur = best = nums[0]\n    for x in nums[1:]:\n        cur = max(x, cur + x)\n        best = max(best, cur)\n    return best",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 6,
+    "number": 152,
+    "title": "Maximum Product Subarray",
+    "hints": [
+      "Negatives flip max into min and vice versa, so track both.",
+      "Maintain max_ending_here and min_ending_here at each index.",
+      "On a negative, swap them before extending."
+    ],
+    "approach": "Track running max and min. At each step: candidates are x, x*cur_max, x*cur_min. The min matters because two negatives become a big positive.",
+    "solution": "def maxProduct(nums):\n    cur_max = cur_min = best = nums[0]\n    for x in nums[1:]:\n        if x < 0:\n            cur_max, cur_min = cur_min, cur_max\n        cur_max = max(x, cur_max * x)\n        cur_min = min(x, cur_min * x)\n        best = max(best, cur_max)\n    return best",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 7,
+    "number": 153,
+    "title": "Find Minimum in Rotated Sorted Array",
+    "hints": [
+      "O(log n) suggests binary search.",
+      "Compare nums[mid] to nums[right] to decide which half holds the minimum.",
+      "If nums[mid] > nums[right], the min is in the right half; otherwise it is in the left half (including mid)."
+    ],
+    "approach": "Binary search on the rotation pivot. Use nums[right] as the anchor — it lies in the lower section after rotation.",
+    "solution": "def findMin(nums):\n    lo, hi = 0, len(nums) - 1\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if nums[mid] > nums[hi]:\n            lo = mid + 1\n        else:\n            hi = mid\n    return nums[lo]",
+    "complexity": {"time": "O(log n)", "space": "O(1)"}
+  },
+  {
+    "id": 8,
+    "number": 33,
+    "title": "Search in Rotated Sorted Array",
+    "hints": [
+      "Binary search, but you must decide which half is sorted at each step.",
+      "Compare nums[lo] to nums[mid]: if nums[lo] <= nums[mid], the left half is sorted.",
+      "Check whether target falls inside the sorted half; if yes, search there, else the other half."
+    ],
+    "approach": "Modified binary search. One half is always sorted — locate it, check if target is in that range, recurse accordingly.",
+    "solution": "def search(nums, target):\n    lo, hi = 0, len(nums) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if nums[mid] == target:\n            return mid\n        if nums[lo] <= nums[mid]:\n            if nums[lo] <= target < nums[mid]:\n                hi = mid - 1\n            else:\n                lo = mid + 1\n        else:\n            if nums[mid] < target <= nums[hi]:\n                lo = mid + 1\n            else:\n                hi = mid - 1\n    return -1",
+    "complexity": {"time": "O(log n)", "space": "O(1)"}
+  },
+  {
+    "id": 9,
+    "number": 371,
+    "title": "Sum of Two Integers",
+    "hints": [
+      "XOR gives sum without carry. AND-then-shift gives the carry.",
+      "Loop: sum = a XOR b, carry = (a AND b) << 1, then repeat until carry is 0.",
+      "Python has unbounded ints, so mask to 32 bits and re-interpret negatives via two's complement."
+    ],
+    "approach": "Bit-manipulation full adder. Mask with 0xFFFFFFFF to simulate 32-bit overflow, then convert back to signed at the end.",
+    "solution": "def getSum(a, b):\n    mask = 0xFFFFFFFF\n    while b & mask:\n        carry = (a & b) << 1\n        a = (a ^ b) & mask\n        b = carry & mask\n    return a if a <= 0x7FFFFFFF else ~(a ^ mask)",
+    "complexity": {"time": "O(1) (at most 32 iterations)", "space": "O(1)"}
+  },
+  {
+    "id": 10,
+    "number": 191,
+    "title": "Number of 1 Bits",
+    "hints": [
+      "Loop n and look at the last bit with n & 1, then n >>= 1.",
+      "Faster trick: n & (n - 1) clears the lowest set bit — iterate until n is 0.",
+      "Python builtin: bin(n).count('1')."
+    ],
+    "approach": "Brian Kernighan's algorithm: each pass n &= n - 1 strips exactly one set bit, so loop count == number of set bits.",
+    "solution": "def hammingWeight(n):\n    count = 0\n    while n:\n        n &= n - 1\n        count += 1\n    return count",
+    "complexity": {"time": "O(k) where k is the number of set bits", "space": "O(1)"}
+  },
+  {
+    "id": 11,
+    "number": 338,
+    "title": "Counting Bits",
+    "hints": [
+      "Naive: call popcount on each i — O(n log n).",
+      "Use DP: bits[i] = bits[i >> 1] + (i & 1).",
+      "Alternative: bits[i] = bits[i & (i - 1)] + 1."
+    ],
+    "approach": "Dynamic programming on previously computed values. bits[i] = bits[i//2] + (i mod 2): drop the last bit, add it back if it was 1.",
+    "solution": "def countBits(n):\n    bits = [0] * (n + 1)\n    for i in range(1, n + 1):\n        bits[i] = bits[i >> 1] + (i & 1)\n    return bits",
+    "complexity": {"time": "O(n)", "space": "O(n)"}
+  },
+  {
+    "id": 12,
+    "number": 268,
+    "title": "Missing Number",
+    "hints": [
+      "Sum trick: expected sum is n*(n+1)/2 — subtract the actual sum.",
+      "XOR trick: XOR all indices 0..n and all values; pairs cancel, the missing number remains.",
+      "Both run in O(n) time with O(1) extra space."
+    ],
+    "approach": "XOR all indices [0..n] with all array values. Equal values cancel out; the leftover is the missing number.",
+    "solution": "def missingNumber(nums):\n    result = len(nums)\n    for i, x in enumerate(nums):\n        result ^= i ^ x\n    return result",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 13,
+    "number": 190,
+    "title": "Reverse Bits",
+    "hints": [
+      "Loop 32 times: pull the bottom bit off n, push it onto result.",
+      "result = (result << 1) | (n & 1); n >>= 1.",
+      "For repeated calls, you can cache reversals of 8-bit chunks."
+    ],
+    "approach": "Shift result left and OR in the lowest bit of n, 32 times.",
+    "solution": "def reverseBits(n):\n    result = 0\n    for _ in range(32):\n        result = (result << 1) | (n & 1)\n        n >>= 1\n    return result",
+    "complexity": {"time": "O(1) (32 iterations)", "space": "O(1)"}
+  },
+  {
+    "id": 14,
+    "number": 70,
+    "title": "Climbing Stairs",
+    "hints": [
+      "ways(n) = ways(n-1) + ways(n-2): last step is either 1 or 2.",
+      "This is the Fibonacci sequence — keep only two prior values.",
+      "Base cases: ways(1) = 1, ways(2) = 2."
+    ],
+    "approach": "Fibonacci recurrence with two rolling variables.",
+    "solution": "def climbStairs(n):\n    a, b = 1, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 15,
+    "number": 322,
+    "title": "Coin Change",
+    "hints": [
+      "Unbounded knapsack. dp[i] = fewest coins to make amount i.",
+      "Transition: dp[i] = min(dp[i - c] + 1) over each coin c <= i.",
+      "Initialize dp[0] = 0, others to infinity; return dp[amount] (or -1 if still infinity)."
+    ],
+    "approach": "Bottom-up DP over amounts. For each amount, try each coin and take the min.",
+    "solution": "def coinChange(coins, amount):\n    INF = amount + 1\n    dp = [0] + [INF] * amount\n    for i in range(1, amount + 1):\n        for c in coins:\n            if c <= i:\n                dp[i] = min(dp[i], dp[i - c] + 1)\n    return dp[amount] if dp[amount] != INF else -1",
+    "complexity": {"time": "O(amount * len(coins))", "space": "O(amount)"}
+  },
+  {
+    "id": 16,
+    "number": 300,
+    "title": "Longest Increasing Subsequence",
+    "hints": [
+      "O(n^2) DP: dp[i] = 1 + max(dp[j]) for j < i with nums[j] < nums[i].",
+      "For O(n log n), maintain a 'tails' array — smallest tail value for each LIS length.",
+      "Use bisect_left to find where the current number belongs in 'tails'."
+    ],
+    "approach": "Patience sorting with binary search. tails[k] = smallest possible tail of an increasing subsequence of length k+1.",
+    "solution": "from bisect import bisect_left\n\ndef lengthOfLIS(nums):\n    tails = []\n    for x in nums:\n        i = bisect_left(tails, x)\n        if i == len(tails):\n            tails.append(x)\n        else:\n            tails[i] = x\n    return len(tails)",
+    "complexity": {"time": "O(n log n)", "space": "O(n)"}
+  },
+  {
+    "id": 17,
+    "number": 1143,
+    "title": "Longest Common Subsequence",
+    "hints": [
+      "Classic 2D DP on (i, j) = prefix lengths of text1 and text2.",
+      "If text1[i-1] == text2[j-1]: dp[i][j] = dp[i-1][j-1] + 1; else max of dropping one char from either side.",
+      "You can compress to two rows since each row only depends on the previous."
+    ],
+    "approach": "2D DP. Fill an (m+1) x (n+1) table; answer is dp[m][n].",
+    "solution": "def longestCommonSubsequence(text1, text2):\n    m, n = len(text1), len(text2)\n    dp = [[0] * (n + 1) for _ in range(m + 1)]\n    for i in range(1, m + 1):\n        for j in range(1, n + 1):\n            if text1[i - 1] == text2[j - 1]:\n                dp[i][j] = dp[i - 1][j - 1] + 1\n            else:\n                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])\n    return dp[m][n]",
+    "complexity": {"time": "O(m*n)", "space": "O(m*n)"}
+  },
+  {
+    "id": 18,
+    "number": 139,
+    "title": "Word Break",
+    "hints": [
+      "dp[i] = True iff s[:i] can be segmented.",
+      "Transition: dp[i] is True if some j < i has dp[j] True and s[j:i] in dict.",
+      "Use a set for O(1) dictionary lookups."
+    ],
+    "approach": "1D DP over prefixes. For each position, check every earlier breakpoint.",
+    "solution": "def wordBreak(s, wordDict):\n    words = set(wordDict)\n    n = len(s)\n    dp = [False] * (n + 1)\n    dp[0] = True\n    for i in range(1, n + 1):\n        for j in range(i):\n            if dp[j] and s[j:i] in words:\n                dp[i] = True\n                break\n    return dp[n]",
+    "complexity": {"time": "O(n^2 * L) including slice cost", "space": "O(n)"}
+  },
+  {
+    "id": 19,
+    "number": 377,
+    "title": "Combination Sum IV",
+    "hints": [
+      "Order matters here — (1,2) and (2,1) are different. So iterate target on the outside.",
+      "dp[t] = sum over n in nums of dp[t - n] when n <= t.",
+      "Base: dp[0] = 1 (one way to make 0: take nothing)."
+    ],
+    "approach": "1D DP. Outer loop over target, inner loop over nums — that ordering counts permutations.",
+    "solution": "def combinationSum4(nums, target):\n    dp = [0] * (target + 1)\n    dp[0] = 1\n    for t in range(1, target + 1):\n        for n in nums:\n            if n <= t:\n                dp[t] += dp[t - n]\n    return dp[target]",
+    "complexity": {"time": "O(target * len(nums))", "space": "O(target)"}
+  },
+  {
+    "id": 20,
+    "number": 198,
+    "title": "House Robber",
+    "hints": [
+      "At each house, either rob it (and skip the previous) or skip it.",
+      "dp[i] = max(dp[i-1], dp[i-2] + nums[i]).",
+      "Only the last two values matter — keep two variables."
+    ],
+    "approach": "Linear DP with two rolling variables prev (i-2) and cur (i-1).",
+    "solution": "def rob(nums):\n    prev = cur = 0\n    for x in nums:\n        prev, cur = cur, max(cur, prev + x)\n    return cur",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 21,
+    "number": 213,
+    "title": "House Robber II",
+    "hints": [
+      "Circular constraint: you cannot pick both house 0 and house n-1.",
+      "Split into two linear House Robber subproblems: nums[0:n-1] and nums[1:n].",
+      "Return the larger of the two."
+    ],
+    "approach": "Run House Robber I twice, each time excluding one endpoint of the circle.",
+    "solution": "def rob(nums):\n    def rob_line(arr):\n        prev = cur = 0\n        for x in arr:\n            prev, cur = cur, max(cur, prev + x)\n        return cur\n    if len(nums) == 1:\n        return nums[0]\n    return max(rob_line(nums[:-1]), rob_line(nums[1:]))",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 22,
+    "number": 91,
+    "title": "Decode Ways",
+    "hints": [
+      "At each position, you either decode a single digit (1-9) or a pair (10-26).",
+      "dp[i] = dp[i-1] (if s[i-1] is 1-9) + dp[i-2] (if s[i-2:i] is 10-26).",
+      "Beware leading zeros: '0' alone has no decoding, and '06' is not valid."
+    ],
+    "approach": "1D DP. At each index, add ways from the previous index when the single digit is valid, and from two-back when the two-digit code is valid.",
+    "solution": "def numDecodings(s):\n    if not s or s[0] == '0':\n        return 0\n    n = len(s)\n    prev, cur = 1, 1\n    for i in range(1, n):\n        new = 0\n        if s[i] != '0':\n            new += cur\n        two = int(s[i - 1:i + 1])\n        if 10 <= two <= 26:\n            new += prev\n        prev, cur = cur, new\n    return cur",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 23,
+    "number": 62,
+    "title": "Unique Paths",
+    "hints": [
+      "Paths to (i, j) = paths to (i-1, j) + paths to (i, j-1).",
+      "Closed form: C(m+n-2, m-1) — count of ways to arrange (m-1) downs among (m+n-2) moves.",
+      "DP with one row suffices."
+    ],
+    "approach": "Combinatorial formula or 1D DP that overwrites a row left-to-right.",
+    "solution": "from math import comb\n\ndef uniquePaths(m, n):\n    return comb(m + n - 2, m - 1)",
+    "complexity": {"time": "O(min(m, n))", "space": "O(1)"}
+  },
+  {
+    "id": 24,
+    "number": 55,
+    "title": "Jump Game",
+    "hints": [
+      "Greedy: track the farthest index reachable so far.",
+      "Scan left to right; if i exceeds reach, you're stuck.",
+      "Stop early when reach >= last index."
+    ],
+    "approach": "Single-pass greedy. Maintain max reachable index; fail if you ever stand beyond it.",
+    "solution": "def canJump(nums):\n    reach = 0\n    for i, x in enumerate(nums):\n        if i > reach:\n            return False\n        reach = max(reach, i + x)\n    return True",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 25,
+    "number": 133,
+    "title": "Clone Graph",
+    "hints": [
+      "DFS or BFS, but you must remember mappings so cycles don't loop forever.",
+      "Map original-node -> cloned-node in a dict.",
+      "When visiting a neighbor, look it up; create it only if absent."
+    ],
+    "approach": "DFS with a hash map from original to clone. Recurse on each neighbor, populating clone.neighbors as you go.",
+    "solution": "def cloneGraph(node):\n    if not node:\n        return None\n    clones = {}\n    def dfs(n):\n        if n in clones:\n            return clones[n]\n        copy = Node(n.val)\n        clones[n] = copy\n        for nb in n.neighbors:\n            copy.neighbors.append(dfs(nb))\n        return copy\n    return dfs(node)",
+    "complexity": {"time": "O(V + E)", "space": "O(V)"}
+  },
+  {
+    "id": 26,
+    "number": 207,
+    "title": "Course Schedule",
+    "hints": [
+      "This is cycle detection in a directed graph.",
+      "Either run Kahn's algorithm (BFS over in-degree 0 nodes) or DFS with a visiting/visited color set.",
+      "If you process every course (Kahn) or never revisit a node in the current path (DFS), it's possible."
+    ],
+    "approach": "Kahn's topological sort. Build adjacency list and in-degrees; repeatedly take a node with in-degree 0 and decrement its neighbors' in-degrees. Finishable iff you process all courses.",
+    "solution": "from collections import deque, defaultdict\n\ndef canFinish(numCourses, prerequisites):\n    graph = defaultdict(list)\n    indeg = [0] * numCourses\n    for a, b in prerequisites:\n        graph[b].append(a)\n        indeg[a] += 1\n    q = deque(i for i in range(numCourses) if indeg[i] == 0)\n    done = 0\n    while q:\n        c = q.popleft()\n        done += 1\n        for nxt in graph[c]:\n            indeg[nxt] -= 1\n            if indeg[nxt] == 0:\n                q.append(nxt)\n    return done == numCourses",
+    "complexity": {"time": "O(V + E)", "space": "O(V + E)"}
+  },
+  {
+    "id": 27,
+    "number": 417,
+    "title": "Pacific Atlantic Water Flow",
+    "hints": [
+      "Reverse the flow: start from each ocean's border and walk uphill (or equal).",
+      "Two DFS/BFS passes — one from Pacific edges, one from Atlantic edges.",
+      "The answer is the intersection of cells reached by both."
+    ],
+    "approach": "Multi-source DFS from each ocean's border, moving only to cells with equal or greater height. Cells in both visited sets are the answer.",
+    "solution": "def pacificAtlantic(heights):\n    if not heights:\n        return []\n    m, n = len(heights), len(heights[0])\n    pac, atl = set(), set()\n    def dfs(r, c, visited):\n        visited.add((r, c))\n        for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:\n            nr, nc = r + dr, c + dc\n            if 0 <= nr < m and 0 <= nc < n and (nr, nc) not in visited \\\n                and heights[nr][nc] >= heights[r][c]:\n                dfs(nr, nc, visited)\n    for i in range(m):\n        dfs(i, 0, pac)\n        dfs(i, n - 1, atl)\n    for j in range(n):\n        dfs(0, j, pac)\n        dfs(m - 1, j, atl)\n    return [list(p) for p in pac & atl]",
+    "complexity": {"time": "O(m*n)", "space": "O(m*n)"}
+  },
+  {
+    "id": 28,
+    "number": 200,
+    "title": "Number of Islands",
+    "hints": [
+      "Scan the grid; each unvisited '1' starts a new island.",
+      "From each starting cell, flood-fill (DFS or BFS) all connected '1's, marking them visited.",
+      "Either mutate the grid (set to '0') or use a visited set."
+    ],
+    "approach": "Iterate cells; when a '1' is found, increment count and DFS to sink the whole island.",
+    "solution": "def numIslands(grid):\n    if not grid:\n        return 0\n    m, n = len(grid), len(grid[0])\n    def dfs(r, c):\n        if not (0 <= r < m and 0 <= c < n) or grid[r][c] != '1':\n            return\n        grid[r][c] = '0'\n        dfs(r+1, c); dfs(r-1, c); dfs(r, c+1); dfs(r, c-1)\n    count = 0\n    for r in range(m):\n        for c in range(n):\n            if grid[r][c] == '1':\n                count += 1\n                dfs(r, c)\n    return count",
+    "complexity": {"time": "O(m*n)", "space": "O(m*n) recursion worst-case"}
+  },
+  {
+    "id": 29,
+    "number": 128,
+    "title": "Longest Consecutive Sequence",
+    "hints": [
+      "Sorting works in O(n log n); the O(n) trick uses a set.",
+      "Put everything in a set; for each x, only start counting if x-1 is NOT in the set (so x is a sequence start).",
+      "Then walk x+1, x+2, ... while present."
+    ],
+    "approach": "Hash set of all values. For each potential sequence start (no predecessor in set), expand forward and track max length.",
+    "solution": "def longestConsecutive(nums):\n    s = set(nums)\n    best = 0\n    for x in s:\n        if x - 1 not in s:\n            length = 1\n            while x + length in s:\n                length += 1\n            best = max(best, length)\n    return best",
+    "complexity": {"time": "O(n)", "space": "O(n)"}
+  },
+  {
+    "id": 30,
+    "number": 269,
+    "title": "Alien Dictionary",
+    "hints": [
+      "Compare each pair of adjacent words — the first differing char gives one ordering edge.",
+      "Build a directed graph of letters, then topological sort it.",
+      "Watch the edge case: if word A is longer than word B and A is a prefix of B, the input is invalid (return '')."
+    ],
+    "approach": "Extract ordering edges from adjacent-word pairs, run Kahn's BFS for topological order. Failure cases: cycle detected, or invalid prefix.",
+    "solution": "from collections import defaultdict, deque\n\ndef alienOrder(words):\n    graph = defaultdict(set)\n    indeg = {c: 0 for w in words for c in w}\n    for a, b in zip(words, words[1:]):\n        for x, y in zip(a, b):\n            if x != y:\n                if y not in graph[x]:\n                    graph[x].add(y)\n                    indeg[y] += 1\n                break\n        else:\n            if len(a) > len(b):\n                return \"\"\n    q = deque(c for c, d in indeg.items() if d == 0)\n    out = []\n    while q:\n        c = q.popleft()\n        out.append(c)\n        for nb in graph[c]:\n            indeg[nb] -= 1\n            if indeg[nb] == 0:\n                q.append(nb)\n    return \"\".join(out) if len(out) == len(indeg) else \"\"",
+    "complexity": {"time": "O(total chars)", "space": "O(unique letters + edges)"}
+  },
+  {
+    "id": 31,
+    "number": 261,
+    "title": "Graph Valid Tree",
+    "hints": [
+      "A tree on n nodes has exactly n-1 edges AND is connected AND has no cycle.",
+      "If edges == n-1 and the graph is connected, it must be acyclic.",
+      "Use Union-Find: if a union ever joins two nodes already in the same set, there's a cycle."
+    ],
+    "approach": "Union-Find with path compression. Reject if a union sees two nodes with the same root, otherwise verify edges == n-1.",
+    "solution": "def validTree(n, edges):\n    if len(edges) != n - 1:\n        return False\n    parent = list(range(n))\n    def find(x):\n        while parent[x] != x:\n            parent[x] = parent[parent[x]]\n            x = parent[x]\n        return x\n    for a, b in edges:\n        ra, rb = find(a), find(b)\n        if ra == rb:\n            return False\n        parent[ra] = rb\n    return True",
+    "complexity": {"time": "O(n * alpha(n))", "space": "O(n)"}
+  },
+  {
+    "id": 32,
+    "number": 323,
+    "title": "Number of Connected Components in an Undirected Graph",
+    "hints": [
+      "Start with n components; each edge that joins two previously separate components reduces the count by 1.",
+      "Union-Find naturally tracks this.",
+      "Alternative: build adjacency list, then DFS/BFS counting components."
+    ],
+    "approach": "Union-Find. Initialize count = n; each successful union (different roots) decrements it.",
+    "solution": "def countComponents(n, edges):\n    parent = list(range(n))\n    def find(x):\n        while parent[x] != x:\n            parent[x] = parent[parent[x]]\n            x = parent[x]\n        return x\n    count = n\n    for a, b in edges:\n        ra, rb = find(a), find(b)\n        if ra != rb:\n            parent[ra] = rb\n            count -= 1\n    return count",
+    "complexity": {"time": "O((n + E) * alpha(n))", "space": "O(n)"}
+  },
+  {
+    "id": 33,
+    "number": 57,
+    "title": "Insert Interval",
+    "hints": [
+      "Three phases: intervals strictly left, overlapping ones to merge, intervals strictly right.",
+      "While the current interval ends before newInterval starts, copy it through.",
+      "While intervals overlap with newInterval, expand newInterval; then copy the rest."
+    ],
+    "approach": "Three-phase scan: append non-overlapping lefts, merge overlapping ones into newInterval, append the rest.",
+    "solution": "def insert(intervals, newInterval):\n    res = []\n    i, n = 0, len(intervals)\n    while i < n and intervals[i][1] < newInterval[0]:\n        res.append(intervals[i]); i += 1\n    while i < n and intervals[i][0] <= newInterval[1]:\n        newInterval[0] = min(newInterval[0], intervals[i][0])\n        newInterval[1] = max(newInterval[1], intervals[i][1])\n        i += 1\n    res.append(newInterval)\n    res.extend(intervals[i:])\n    return res",
+    "complexity": {"time": "O(n)", "space": "O(n)"}
+  },
+  {
+    "id": 34,
+    "number": 56,
+    "title": "Merge Intervals",
+    "hints": [
+      "Sort by start time first.",
+      "Walk through; if the current interval overlaps the last result, extend the last's end.",
+      "Otherwise append the current interval."
+    ],
+    "approach": "Sort by start, then sweep. Merge when current.start <= last.end.",
+    "solution": "def merge(intervals):\n    intervals.sort(key=lambda x: x[0])\n    res = []\n    for s, e in intervals:\n        if res and s <= res[-1][1]:\n            res[-1][1] = max(res[-1][1], e)\n        else:\n            res.append([s, e])\n    return res",
+    "complexity": {"time": "O(n log n)", "space": "O(n)"}
+  },
+  {
+    "id": 35,
+    "number": 435,
+    "title": "Non-overlapping Intervals",
+    "hints": [
+      "Classic greedy: sort by end time.",
+      "Always keep the interval that finishes earliest among those that don't conflict.",
+      "Count and remove the rest."
+    ],
+    "approach": "Sort by end. Greedily accept any interval whose start >= last kept end. Removed count = total - kept.",
+    "solution": "def eraseOverlapIntervals(intervals):\n    intervals.sort(key=lambda x: x[1])\n    end = float('-inf')\n    kept = 0\n    for s, e in intervals:\n        if s >= end:\n            kept += 1\n            end = e\n    return len(intervals) - kept",
+    "complexity": {"time": "O(n log n)", "space": "O(1)"}
+  },
+  {
+    "id": 36,
+    "number": 252,
+    "title": "Meeting Rooms",
+    "hints": [
+      "Sort by start time.",
+      "If any meeting starts before the previous one ends, return False.",
+      "Otherwise True."
+    ],
+    "approach": "Sort by start; verify each meeting begins no earlier than the previous one ends.",
+    "solution": "def canAttendMeetings(intervals):\n    intervals.sort(key=lambda x: x[0])\n    for i in range(1, len(intervals)):\n        if intervals[i][0] < intervals[i - 1][1]:\n            return False\n    return True",
+    "complexity": {"time": "O(n log n)", "space": "O(1)"}
+  },
+  {
+    "id": 37,
+    "number": 253,
+    "title": "Meeting Rooms II",
+    "hints": [
+      "Min-heap of end times: at any moment its size is the number of rooms in use.",
+      "Sort intervals by start. For each meeting, pop ended rooms before pushing this meeting's end.",
+      "Final heap size is the answer."
+    ],
+    "approach": "Sort by start, then sweep with a min-heap of end times. Reuse rooms whose end <= current start.",
+    "solution": "import heapq\n\ndef minMeetingRooms(intervals):\n    intervals.sort(key=lambda x: x[0])\n    heap = []\n    for s, e in intervals:\n        if heap and heap[0] <= s:\n            heapq.heappop(heap)\n        heapq.heappush(heap, e)\n    return len(heap)",
+    "complexity": {"time": "O(n log n)", "space": "O(n)"}
+  },
+  {
+    "id": 38,
+    "number": 206,
+    "title": "Reverse Linked List",
+    "hints": [
+      "Iterative: walk with prev = None, cur = head; flip cur.next, advance.",
+      "Save next before clobbering cur.next or you lose the rest of the list.",
+      "Recursive variation: reverse the tail, then point head.next.next = head."
+    ],
+    "approach": "Iterative three-pointer flip.",
+    "solution": "def reverseList(head):\n    prev = None\n    cur = head\n    while cur:\n        nxt = cur.next\n        cur.next = prev\n        prev = cur\n        cur = nxt\n    return prev",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 39,
+    "number": 141,
+    "title": "Linked List Cycle",
+    "hints": [
+      "Floyd's tortoise and hare: two pointers, slow steps 1, fast steps 2.",
+      "If they meet, there's a cycle. If fast hits None, there isn't.",
+      "Alternative: use a visited set — but that's O(n) space."
+    ],
+    "approach": "Two-pointer (Floyd) cycle detection.",
+    "solution": "def hasCycle(head):\n    slow = fast = head\n    while fast and fast.next:\n        slow = slow.next\n        fast = fast.next.next\n        if slow is fast:\n            return True\n    return False",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 40,
+    "number": 21,
+    "title": "Merge Two Sorted Lists",
+    "hints": [
+      "Use a dummy head node so you don't special-case the first append.",
+      "Walk both lists, attaching whichever current node is smaller.",
+      "When one is exhausted, attach the rest of the other."
+    ],
+    "approach": "Dummy-head iterative merge.",
+    "solution": "def mergeTwoLists(list1, list2):\n    dummy = ListNode()\n    tail = dummy\n    while list1 and list2:\n        if list1.val <= list2.val:\n            tail.next = list1; list1 = list1.next\n        else:\n            tail.next = list2; list2 = list2.next\n        tail = tail.next\n    tail.next = list1 or list2\n    return dummy.next",
+    "complexity": {"time": "O(n + m)", "space": "O(1)"}
+  },
+  {
+    "id": 41,
+    "number": 23,
+    "title": "Merge K Sorted Lists",
+    "hints": [
+      "Naive: concatenate all and sort — O(N log N).",
+      "Better: min-heap of size k holding the front of each list. Pop the smallest, push its next.",
+      "Alternative: pairwise merge using divide-and-conquer."
+    ],
+    "approach": "Min-heap of (value, list_index, node). Pop smallest, advance, push its successor.",
+    "solution": "import heapq\n\ndef mergeKLists(lists):\n    heap = []\n    for i, node in enumerate(lists):\n        if node:\n            heapq.heappush(heap, (node.val, i, node))\n    dummy = ListNode()\n    tail = dummy\n    while heap:\n        val, i, node = heapq.heappop(heap)\n        tail.next = node\n        tail = tail.next\n        if node.next:\n            heapq.heappush(heap, (node.next.val, i, node.next))\n    return dummy.next",
+    "complexity": {"time": "O(N log k)", "space": "O(k)"}
+  },
+  {
+    "id": 42,
+    "number": 19,
+    "title": "Remove Nth Node From End of List",
+    "hints": [
+      "Two-pointer with a gap of n.",
+      "Move 'fast' n steps ahead first; then move both until fast hits the end. Slow is now at the node before the one to remove.",
+      "Use a dummy head to simplify removing the head itself."
+    ],
+    "approach": "Two pointers separated by n, advanced together until the leading one reaches the end.",
+    "solution": "def removeNthFromEnd(head, n):\n    dummy = ListNode(0, head)\n    slow = fast = dummy\n    for _ in range(n):\n        fast = fast.next\n    while fast.next:\n        slow = slow.next\n        fast = fast.next\n    slow.next = slow.next.next\n    return dummy.next",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 43,
+    "number": 143,
+    "title": "Reorder List",
+    "hints": [
+      "Three subproblems: find middle, reverse second half, interleave the two halves.",
+      "Use slow/fast pointers to find the middle.",
+      "Carefully terminate the first half before reversing the second."
+    ],
+    "approach": "Split with slow/fast, reverse second half in place, then weave nodes together.",
+    "solution": "def reorderList(head):\n    if not head or not head.next:\n        return\n    slow = fast = head\n    while fast.next and fast.next.next:\n        slow = slow.next\n        fast = fast.next.next\n    prev, cur = None, slow.next\n    slow.next = None\n    while cur:\n        nxt = cur.next\n        cur.next = prev\n        prev = cur\n        cur = nxt\n    first, second = head, prev\n    while second:\n        t1, t2 = first.next, second.next\n        first.next = second\n        second.next = t1\n        first, second = t1, t2",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 44,
+    "number": 73,
+    "title": "Set Matrix Zeroes",
+    "hints": [
+      "Naive uses O(m+n) extra space to mark rows and columns.",
+      "O(1) trick: use the first row and first column themselves as markers.",
+      "Handle the first row/column separately with two boolean flags."
+    ],
+    "approach": "Use row 0 and column 0 as scratch space for zero flags; track the original state of those two with two booleans.",
+    "solution": "def setZeroes(matrix):\n    m, n = len(matrix), len(matrix[0])\n    first_row = any(matrix[0][j] == 0 for j in range(n))\n    first_col = any(matrix[i][0] == 0 for i in range(m))\n    for i in range(1, m):\n        for j in range(1, n):\n            if matrix[i][j] == 0:\n                matrix[i][0] = 0\n                matrix[0][j] = 0\n    for i in range(1, m):\n        for j in range(1, n):\n            if matrix[i][0] == 0 or matrix[0][j] == 0:\n                matrix[i][j] = 0\n    if first_row:\n        for j in range(n):\n            matrix[0][j] = 0\n    if first_col:\n        for i in range(m):\n            matrix[i][0] = 0",
+    "complexity": {"time": "O(m*n)", "space": "O(1)"}
+  },
+  {
+    "id": 45,
+    "number": 54,
+    "title": "Spiral Matrix",
+    "hints": [
+      "Track four boundaries: top, bottom, left, right.",
+      "Walk right across top row, down the right column, left across bottom row, up the left column. Shrink boundaries after each side.",
+      "Check that top <= bottom and left <= right before each pass to avoid double-counting."
+    ],
+    "approach": "Layer-by-layer with four boundaries.",
+    "solution": "def spiralOrder(matrix):\n    res = []\n    top, bottom = 0, len(matrix) - 1\n    left, right = 0, len(matrix[0]) - 1\n    while top <= bottom and left <= right:\n        for j in range(left, right + 1):\n            res.append(matrix[top][j])\n        top += 1\n        for i in range(top, bottom + 1):\n            res.append(matrix[i][right])\n        right -= 1\n        if top <= bottom:\n            for j in range(right, left - 1, -1):\n                res.append(matrix[bottom][j])\n            bottom -= 1\n        if left <= right:\n            for i in range(bottom, top - 1, -1):\n                res.append(matrix[i][left])\n            left += 1\n    return res",
+    "complexity": {"time": "O(m*n)", "space": "O(1) extra"}
+  },
+  {
+    "id": 46,
+    "number": 48,
+    "title": "Rotate Image",
+    "hints": [
+      "90 clockwise = transpose + reverse each row.",
+      "Transpose: swap matrix[i][j] with matrix[j][i] for i < j.",
+      "Then reverse each row in place."
+    ],
+    "approach": "Transpose in place, then reverse each row.",
+    "solution": "def rotate(matrix):\n    n = len(matrix)\n    for i in range(n):\n        for j in range(i + 1, n):\n            matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]\n    for row in matrix:\n        row.reverse()",
+    "complexity": {"time": "O(n^2)", "space": "O(1)"}
+  },
+  {
+    "id": 47,
+    "number": 79,
+    "title": "Word Search",
+    "hints": [
+      "Backtracking DFS from every cell that matches word[0].",
+      "Mark visited cells temporarily (e.g., overwrite with '#'), restore on backtrack.",
+      "Prune as soon as a mismatch occurs or you walk off-grid."
+    ],
+    "approach": "DFS with in-place marking. Try all four neighbors; restore cell after returning.",
+    "solution": "def exist(board, word):\n    m, n = len(board), len(board[0])\n    def dfs(r, c, i):\n        if i == len(word):\n            return True\n        if not (0 <= r < m and 0 <= c < n) or board[r][c] != word[i]:\n            return False\n        board[r][c] = '#'\n        found = (dfs(r+1,c,i+1) or dfs(r-1,c,i+1)\n                 or dfs(r,c+1,i+1) or dfs(r,c-1,i+1))\n        board[r][c] = word[i]\n        return found\n    for r in range(m):\n        for c in range(n):\n            if dfs(r, c, 0):\n                return True\n    return False",
+    "complexity": {"time": "O(m*n*4^L)", "space": "O(L) recursion"}
+  },
+  {
+    "id": 48,
+    "number": 3,
+    "title": "Longest Substring Without Repeating Characters",
+    "hints": [
+      "Sliding window with two pointers.",
+      "Use a dict mapping char -> last seen index.",
+      "When you see a duplicate, jump left to max(left, last_seen[char] + 1)."
+    ],
+    "approach": "Sliding window; left pointer jumps past the last occurrence of any repeated character.",
+    "solution": "def lengthOfLongestSubstring(s):\n    last = {}\n    left = best = 0\n    for right, c in enumerate(s):\n        if c in last and last[c] >= left:\n            left = last[c] + 1\n        last[c] = right\n        best = max(best, right - left + 1)\n    return best",
+    "complexity": {"time": "O(n)", "space": "O(min(n, alphabet))"}
+  },
+  {
+    "id": 49,
+    "number": 424,
+    "title": "Longest Repeating Character Replacement",
+    "hints": [
+      "Sliding window with a frequency map.",
+      "Window is valid iff (window_length - count_of_most_frequent_char) <= k.",
+      "If invalid, shrink from the left."
+    ],
+    "approach": "Sliding window. Maintain max frequency in the window; window must satisfy size - maxFreq <= k.",
+    "solution": "from collections import defaultdict\n\ndef characterReplacement(s, k):\n    counts = defaultdict(int)\n    left = best = max_count = 0\n    for right, c in enumerate(s):\n        counts[c] += 1\n        max_count = max(max_count, counts[c])\n        while (right - left + 1) - max_count > k:\n            counts[s[left]] -= 1\n            left += 1\n        best = max(best, right - left + 1)\n    return best",
+    "complexity": {"time": "O(n)", "space": "O(1) (26 chars)"}
+  },
+  {
+    "id": 50,
+    "number": 76,
+    "title": "Minimum Window Substring",
+    "hints": [
+      "Sliding window with a 'have/need' counter.",
+      "Expand right until window contains all of t's chars; then shrink left while still valid.",
+      "Track the best (shortest) valid window seen."
+    ],
+    "approach": "Sliding window with character counts. Track how many distinct chars currently meet their target count.",
+    "solution": "from collections import Counter, defaultdict\n\ndef minWindow(s, t):\n    if not s or not t:\n        return \"\"\n    need = Counter(t)\n    have = defaultdict(int)\n    required = len(need)\n    formed = 0\n    left = 0\n    best = (float('inf'), 0, 0)\n    for right, c in enumerate(s):\n        have[c] += 1\n        if c in need and have[c] == need[c]:\n            formed += 1\n        while formed == required:\n            if right - left + 1 < best[0]:\n                best = (right - left + 1, left, right)\n            have[s[left]] -= 1\n            if s[left] in need and have[s[left]] < need[s[left]]:\n                formed -= 1\n            left += 1\n    return \"\" if best[0] == float('inf') else s[best[1]:best[2] + 1]",
+    "complexity": {"time": "O(n + m)", "space": "O(alphabet)"}
+  },
+  {
+    "id": 51,
+    "number": 242,
+    "title": "Valid Anagram",
+    "hints": [
+      "Two anagrams have the same character counts.",
+      "Sort both and compare — O(n log n).",
+      "Or count chars in one pass with Counter / array of 26 ints — O(n)."
+    ],
+    "approach": "Compare character frequency counts.",
+    "solution": "from collections import Counter\n\ndef isAnagram(s, t):\n    return Counter(s) == Counter(t)",
+    "complexity": {"time": "O(n)", "space": "O(1) (fixed alphabet)"}
+  },
+  {
+    "id": 52,
+    "number": 49,
+    "title": "Group Anagrams",
+    "hints": [
+      "Anagrams share a canonical form — either sorted string or a 26-tuple of counts.",
+      "Use that as a dict key and append each word to its bucket.",
+      "Tuple of counts is O(n) per word; sorted string is O(n log n)."
+    ],
+    "approach": "Hash words by their character-count signature.",
+    "solution": "from collections import defaultdict\n\ndef groupAnagrams(strs):\n    groups = defaultdict(list)\n    for w in strs:\n        key = tuple(sorted(w))\n        groups[key].append(w)\n    return list(groups.values())",
+    "complexity": {"time": "O(N * K log K)", "space": "O(N*K)"}
+  },
+  {
+    "id": 53,
+    "number": 20,
+    "title": "Valid Parentheses",
+    "hints": [
+      "Use a stack.",
+      "Push opens; when you see a close, the stack top must match.",
+      "At the end the stack should be empty."
+    ],
+    "approach": "Stack of opening brackets; match on close, fail on mismatch or empty stack.",
+    "solution": "def isValid(s):\n    pairs = {')': '(', ']': '[', '}': '{'}\n    stack = []\n    for c in s:\n        if c in pairs:\n            if not stack or stack.pop() != pairs[c]:\n                return False\n        else:\n            stack.append(c)\n    return not stack",
+    "complexity": {"time": "O(n)", "space": "O(n)"}
+  },
+  {
+    "id": 54,
+    "number": 125,
+    "title": "Valid Palindrome",
+    "hints": [
+      "Two-pointer from both ends.",
+      "Skip non-alphanumeric chars; lowercase before comparing.",
+      "Return False on first mismatch."
+    ],
+    "approach": "Two pointers converging, skipping non-alphanumerics.",
+    "solution": "def isPalindrome(s):\n    i, j = 0, len(s) - 1\n    while i < j:\n        while i < j and not s[i].isalnum():\n            i += 1\n        while i < j and not s[j].isalnum():\n            j -= 1\n        if s[i].lower() != s[j].lower():\n            return False\n        i += 1; j -= 1\n    return True",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 55,
+    "number": 5,
+    "title": "Longest Palindromic Substring",
+    "hints": [
+      "Expand around each possible center: 2n-1 centers (between each char and at each char).",
+      "For each center, expand outward while both sides match.",
+      "Track the longest seen. Manacher's gives O(n) but is overkill for 1000."
+    ],
+    "approach": "Expand around centers, both odd-length and even-length.",
+    "solution": "def longestPalindrome(s):\n    def expand(l, r):\n        while l >= 0 and r < len(s) and s[l] == s[r]:\n            l -= 1; r += 1\n        return l + 1, r - 1\n    best = (0, 0)\n    for i in range(len(s)):\n        for l, r in (expand(i, i), expand(i, i + 1)):\n            if r - l > best[1] - best[0]:\n                best = (l, r)\n    return s[best[0]:best[1] + 1]",
+    "complexity": {"time": "O(n^2)", "space": "O(1)"}
+  },
+  {
+    "id": 56,
+    "number": 647,
+    "title": "Palindromic Substrings",
+    "hints": [
+      "Same expand-around-center trick.",
+      "Each successful expansion contributes one palindromic substring.",
+      "Sum across all centers."
+    ],
+    "approach": "Expand around each center, counting palindromes formed.",
+    "solution": "def countSubstrings(s):\n    def expand(l, r):\n        cnt = 0\n        while l >= 0 and r < len(s) and s[l] == s[r]:\n            cnt += 1; l -= 1; r += 1\n        return cnt\n    total = 0\n    for i in range(len(s)):\n        total += expand(i, i) + expand(i, i + 1)\n    return total",
+    "complexity": {"time": "O(n^2)", "space": "O(1)"}
+  },
+  {
+    "id": 57,
+    "number": 271,
+    "title": "Encode and Decode Strings",
+    "hints": [
+      "Use a length-prefixed encoding so any character (including delimiters) can appear in the strings.",
+      "Format each as '<len>#<string>'.",
+      "Decode by reading until '#', parsing the length, then slicing that many chars."
+    ],
+    "approach": "Length-prefix each string with a delimiter separator.",
+    "solution": "class Codec:\n    def encode(self, strs):\n        return ''.join(f\"{len(s)}#{s}\" for s in strs)\n    def decode(self, s):\n        res, i = [], 0\n        while i < len(s):\n            j = s.index('#', i)\n            ln = int(s[i:j])\n            res.append(s[j + 1:j + 1 + ln])\n            i = j + 1 + ln\n        return res",
+    "complexity": {"time": "O(N) total chars", "space": "O(N)"}
+  },
+  {
+    "id": 58,
+    "number": 104,
+    "title": "Maximum Depth of Binary Tree",
+    "hints": [
+      "Recursion: depth(node) = 1 + max(depth(left), depth(right)).",
+      "Base case: null node has depth 0.",
+      "BFS works too — count levels."
+    ],
+    "approach": "Recursive max of children plus one.",
+    "solution": "def maxDepth(root):\n    if not root:\n        return 0\n    return 1 + max(maxDepth(root.left), maxDepth(root.right))",
+    "complexity": {"time": "O(n)", "space": "O(h) recursion"}
+  },
+  {
+    "id": 59,
+    "number": 100,
+    "title": "Same Tree",
+    "hints": [
+      "Structural recursion: both null = same; one null = different.",
+      "Otherwise values must match AND left/right subtrees must each be same.",
+      "Short-circuit on first mismatch."
+    ],
+    "approach": "Recurse comparing values and corresponding subtrees.",
+    "solution": "def isSameTree(p, q):\n    if not p and not q:\n        return True\n    if not p or not q or p.val != q.val:\n        return False\n    return isSameTree(p.left, q.left) and isSameTree(p.right, q.right)",
+    "complexity": {"time": "O(n)", "space": "O(h)"}
+  },
+  {
+    "id": 60,
+    "number": 226,
+    "title": "Invert Binary Tree",
+    "hints": [
+      "At each node, swap left and right.",
+      "Recurse into both subtrees (order doesn't matter).",
+      "Iterative variant: BFS/DFS with an explicit stack/queue."
+    ],
+    "approach": "Recursive swap.",
+    "solution": "def invertTree(root):\n    if not root:\n        return None\n    root.left, root.right = invertTree(root.right), invertTree(root.left)\n    return root",
+    "complexity": {"time": "O(n)", "space": "O(h)"}
+  },
+  {
+    "id": 61,
+    "number": 124,
+    "title": "Binary Tree Maximum Path Sum",
+    "hints": [
+      "At each node, the path 'through' the node = node.val + max(0, left_gain) + max(0, right_gain).",
+      "But the value RETURNED upward can only extend into one child: node.val + max(0, max(left_gain, right_gain)).",
+      "Track the global best inside the recursion."
+    ],
+    "approach": "DFS returning the best one-sided gain; meanwhile update a global best with the through-node sum.",
+    "solution": "def maxPathSum(root):\n    best = float('-inf')\n    def gain(node):\n        nonlocal best\n        if not node:\n            return 0\n        l = max(gain(node.left), 0)\n        r = max(gain(node.right), 0)\n        best = max(best, node.val + l + r)\n        return node.val + max(l, r)\n    gain(root)\n    return best",
+    "complexity": {"time": "O(n)", "space": "O(h)"}
+  },
+  {
+    "id": 62,
+    "number": 102,
+    "title": "Binary Tree Level Order Traversal",
+    "hints": [
+      "BFS with a queue, processing one level at a time.",
+      "At each step, snapshot the current queue size — that's the level width.",
+      "Pop exactly that many nodes per level into a sublist."
+    ],
+    "approach": "BFS in level-sized batches.",
+    "solution": "from collections import deque\n\ndef levelOrder(root):\n    if not root:\n        return []\n    res = []\n    q = deque([root])\n    while q:\n        level = []\n        for _ in range(len(q)):\n            node = q.popleft()\n            level.append(node.val)\n            if node.left:\n                q.append(node.left)\n            if node.right:\n                q.append(node.right)\n        res.append(level)\n    return res",
+    "complexity": {"time": "O(n)", "space": "O(n)"}
+  },
+  {
+    "id": 63,
+    "number": 297,
+    "title": "Serialize and Deserialize Binary Tree",
+    "hints": [
+      "Pick a consistent traversal (preorder is easy) and mark null children explicitly.",
+      "Serialize: preorder DFS, emit 'null' for absent children, comma-separate.",
+      "Deserialize: split tokens, build via the same preorder using an iterator."
+    ],
+    "approach": "Preorder with explicit null markers.",
+    "solution": "class Codec:\n    def serialize(self, root):\n        vals = []\n        def dfs(n):\n            if not n:\n                vals.append('#'); return\n            vals.append(str(n.val))\n            dfs(n.left); dfs(n.right)\n        dfs(root)\n        return ','.join(vals)\n    def deserialize(self, data):\n        it = iter(data.split(','))\n        def build():\n            v = next(it)\n            if v == '#':\n                return None\n            node = TreeNode(int(v))\n            node.left = build()\n            node.right = build()\n            return node\n        return build()",
+    "complexity": {"time": "O(n)", "space": "O(n)"}
+  },
+  {
+    "id": 64,
+    "number": 572,
+    "title": "Subtree of Another Tree",
+    "hints": [
+      "Walk every node of root; from each, check 'same tree' against subRoot.",
+      "'Same tree' is the helper from problem 100.",
+      "Faster: serialize both trees and check substring (with care for null markers)."
+    ],
+    "approach": "DFS over root; at each node test sameTree(node, subRoot).",
+    "solution": "def isSubtree(root, subRoot):\n    def same(a, b):\n        if not a and not b: return True\n        if not a or not b or a.val != b.val: return False\n        return same(a.left, b.left) and same(a.right, b.right)\n    if not root:\n        return False\n    if same(root, subRoot):\n        return True\n    return isSubtree(root.left, subRoot) or isSubtree(root.right, subRoot)",
+    "complexity": {"time": "O(n*m)", "space": "O(h)"}
+  },
+  {
+    "id": 65,
+    "number": 105,
+    "title": "Construct Binary Tree from Preorder and Inorder Traversal",
+    "hints": [
+      "First element of preorder is the root.",
+      "Find its position in inorder — left side is the left subtree, right side is the right subtree.",
+      "Use an index map for O(1) inorder lookup."
+    ],
+    "approach": "Recursive split using a hash map for inorder positions.",
+    "solution": "def buildTree(preorder, inorder):\n    idx = {v: i for i, v in enumerate(inorder)}\n    pre_iter = iter(preorder)\n    def build(lo, hi):\n        if lo > hi:\n            return None\n        v = next(pre_iter)\n        node = TreeNode(v)\n        mid = idx[v]\n        node.left = build(lo, mid - 1)\n        node.right = build(mid + 1, hi)\n        return node\n    return build(0, len(inorder) - 1)",
+    "complexity": {"time": "O(n)", "space": "O(n)"}
+  },
+  {
+    "id": 66,
+    "number": 98,
+    "title": "Validate Binary Search Tree",
+    "hints": [
+      "Each node must lie within an allowed (low, high) range that tightens as you descend.",
+      "Going left: high becomes node.val. Going right: low becomes node.val.",
+      "Alternative: inorder traversal must be strictly increasing."
+    ],
+    "approach": "Recursive range validation.",
+    "solution": "def isValidBST(root):\n    def valid(node, lo, hi):\n        if not node:\n            return True\n        if not (lo < node.val < hi):\n            return False\n        return valid(node.left, lo, node.val) and valid(node.right, node.val, hi)\n    return valid(root, float('-inf'), float('inf'))",
+    "complexity": {"time": "O(n)", "space": "O(h)"}
+  },
+  {
+    "id": 67,
+    "number": 230,
+    "title": "Kth Smallest Element in a BST",
+    "hints": [
+      "BST inorder traversal visits nodes in sorted order.",
+      "Stop at the kth visited node.",
+      "Iterative inorder with an explicit stack lets you stop early without traversing the whole tree."
+    ],
+    "approach": "Iterative inorder; stop when the visit count reaches k.",
+    "solution": "def kthSmallest(root, k):\n    stack = []\n    node = root\n    while stack or node:\n        while node:\n            stack.append(node)\n            node = node.left\n        node = stack.pop()\n        k -= 1\n        if k == 0:\n            return node.val\n        node = node.right",
+    "complexity": {"time": "O(h + k)", "space": "O(h)"}
+  },
+  {
+    "id": 68,
+    "number": 235,
+    "title": "Lowest Common Ancestor of a Binary Search Tree",
+    "hints": [
+      "Use BST ordering to navigate.",
+      "If both p and q are less than node, go left; if both greater, go right.",
+      "Otherwise the current node splits them — that's the LCA."
+    ],
+    "approach": "Walk down the BST until p and q diverge.",
+    "solution": "def lowestCommonAncestor(root, p, q):\n    while root:\n        if p.val < root.val and q.val < root.val:\n            root = root.left\n        elif p.val > root.val and q.val > root.val:\n            root = root.right\n        else:\n            return root",
+    "complexity": {"time": "O(h)", "space": "O(1)"}
+  },
+  {
+    "id": 69,
+    "number": 347,
+    "title": "Top K Frequent Elements",
+    "hints": [
+      "Count frequencies with a hash map.",
+      "Bucket sort by frequency — n+1 buckets indexed by count — gives O(n).",
+      "Min-heap of size k is a clean alternative: O(n log k)."
+    ],
+    "approach": "Bucket sort by frequency: index i holds values that appear exactly i times.",
+    "solution": "from collections import Counter\n\ndef topKFrequent(nums, k):\n    counts = Counter(nums)\n    buckets = [[] for _ in range(len(nums) + 1)]\n    for val, c in counts.items():\n        buckets[c].append(val)\n    out = []\n    for c in range(len(buckets) - 1, 0, -1):\n        out.extend(buckets[c])\n        if len(out) >= k:\n            return out[:k]\n    return out[:k]",
+    "complexity": {"time": "O(n)", "space": "O(n)"}
+  },
+  {
+    "id": 70,
+    "number": 295,
+    "title": "Find Median from Data Stream",
+    "hints": [
+      "Two heaps: max-heap for the lower half, min-heap for the upper half.",
+      "Keep them balanced (sizes differ by at most 1).",
+      "Median = top of the larger heap, or average of both tops when equal."
+    ],
+    "approach": "Two heaps with rebalancing after every insert.",
+    "solution": "import heapq\n\nclass MedianFinder:\n    def __init__(self):\n        self.lo = []  # max-heap (negated)\n        self.hi = []  # min-heap\n    def addNum(self, num):\n        heapq.heappush(self.lo, -num)\n        heapq.heappush(self.hi, -heapq.heappop(self.lo))\n        if len(self.hi) > len(self.lo):\n            heapq.heappush(self.lo, -heapq.heappop(self.hi))\n    def findMedian(self):\n        if len(self.lo) > len(self.hi):\n            return -self.lo[0]\n        return (-self.lo[0] + self.hi[0]) / 2",
+    "complexity": {"time": "O(log n) add, O(1) median", "space": "O(n)"}
+  },
+  {
+    "id": 71,
+    "number": 215,
+    "title": "Kth Largest Element in an Array",
+    "hints": [
+      "Sorting is O(n log n) — fine but not optimal.",
+      "Min-heap of size k: O(n log k).",
+      "Quickselect: average O(n), worst O(n^2)."
+    ],
+    "approach": "Min-heap of size k; top is the kth largest.",
+    "solution": "import heapq\n\ndef findKthLargest(nums, k):\n    return heapq.nlargest(k, nums)[-1]",
+    "complexity": {"time": "O(n log k)", "space": "O(k)"}
+  },
+  {
+    "id": 72,
+    "number": 15,
+    "title": "3Sum",
+    "hints": [
+      "Sort the array first — that's what makes dedup tractable.",
+      "For each i, do a two-pointer search on the suffix for pairs summing to -nums[i].",
+      "Skip duplicate values for i, left, and right to avoid duplicate triplets."
+    ],
+    "approach": "Sort, then for each pivot run two-pointer on the right side. Skip duplicates carefully.",
+    "solution": "def threeSum(nums):\n    nums.sort()\n    res = []\n    n = len(nums)\n    for i in range(n - 2):\n        if nums[i] > 0:\n            break\n        if i > 0 and nums[i] == nums[i - 1]:\n            continue\n        l, r = i + 1, n - 1\n        while l < r:\n            s = nums[i] + nums[l] + nums[r]\n            if s == 0:\n                res.append([nums[i], nums[l], nums[r]])\n                l += 1; r -= 1\n                while l < r and nums[l] == nums[l - 1]: l += 1\n                while l < r and nums[r] == nums[r + 1]: r -= 1\n            elif s < 0:\n                l += 1\n            else:\n                r -= 1\n    return res",
+    "complexity": {"time": "O(n^2)", "space": "O(1) extra"}
+  },
+  {
+    "id": 73,
+    "number": 11,
+    "title": "Container With Most Water",
+    "hints": [
+      "Two pointers at both ends.",
+      "Area = min(left_height, right_height) * (right - left).",
+      "Always move the shorter side inward — the only way to potentially find a taller bound."
+    ],
+    "approach": "Two pointers converging; advance whichever side is shorter.",
+    "solution": "def maxArea(height):\n    l, r = 0, len(height) - 1\n    best = 0\n    while l < r:\n        h = min(height[l], height[r])\n        best = max(best, h * (r - l))\n        if height[l] < height[r]:\n            l += 1\n        else:\n            r -= 1\n    return best",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 74,
+    "number": 42,
+    "title": "Trapping Rain Water",
+    "hints": [
+      "Water above index i is min(maxLeft[i], maxRight[i]) - height[i].",
+      "Precompute both arrays for an O(n) time / O(n) space solution.",
+      "Two-pointer trick removes the extra arrays for O(1) space."
+    ],
+    "approach": "Two pointers tracking max so far from each side. Move from the shorter side and accumulate trapped water.",
+    "solution": "def trap(height):\n    l, r = 0, len(height) - 1\n    left_max = right_max = 0\n    water = 0\n    while l < r:\n        if height[l] < height[r]:\n            left_max = max(left_max, height[l])\n            water += left_max - height[l]\n            l += 1\n        else:\n            right_max = max(right_max, height[r])\n            water += right_max - height[r]\n            r -= 1\n    return water",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  },
+  {
+    "id": 75,
+    "number": 283,
+    "title": "Move Zeroes",
+    "hints": [
+      "Two pointers: a slow 'write' index for non-zero elements.",
+      "Scan with a fast pointer; whenever you see non-zero, copy to write and advance write.",
+      "Fill the rest with zeros, or swap as you go to avoid a second pass."
+    ],
+    "approach": "Two-pointer in-place: swap non-zero elements forward.",
+    "solution": "def moveZeroes(nums):\n    write = 0\n    for read in range(len(nums)):\n        if nums[read] != 0:\n            nums[write], nums[read] = nums[read], nums[write]\n            write += 1",
+    "complexity": {"time": "O(n)", "space": "O(1)"}
+  }
+]
