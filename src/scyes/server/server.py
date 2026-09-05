@@ -26,6 +26,7 @@ async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "service": "api_server"}
 
+
 class InvokeRequest(BaseModel):
     input: str
 
@@ -39,6 +40,7 @@ async def invoke(request: InvokeRequest) -> Any:
 async def invoke_adk(request: InvokeRequest) -> Any:
     output = await ainvoke_adk_agent(request.input)
     return {"output": output}
+
 
 @app.post("/pydantic-agent/invoke")
 async def invoke_pydantic(http_request: Request, request: InvokeRequest) -> Any:

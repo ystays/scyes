@@ -1,7 +1,7 @@
 [project]
 name = "scyes"
 version = "0.1.0"
-description = "Add your description here"
+description = "Agentic LLM Discord bot and CLI"
 readme = "README.md"
 requires-python = ">=3.13,<4.0.0"
 dependencies = [
@@ -47,5 +47,4 @@ build-backend = "hatchling.build"
 packages = ["src/scyes"]
 
 [project.scripts]
-pyd-agent = "scyes.llm.pydantic_agent.cli:main"
-pyd = "pydantic_ai.cli:cli"
+scy = "scyes.llm.pydantic_agent.cli:main"
